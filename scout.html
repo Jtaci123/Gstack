@@ -157,6 +157,17 @@
   .idea-field-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
   .idea-field-text { font-size: 13px; color: var(--ink); line-height: 1.6; }
   .idea-signals { grid-column: 1/-1; font-family: var(--mono); font-size: 10px; color: var(--ghost); letter-spacing: .04em; padding-top: 12px; border-top: 1px solid var(--rule); }
+  .idea-handle { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .06em; font-style: italic; margin-top: 2px; }
+  .idea-tension { grid-column: 1/-1; font-size: 12px; color: var(--ink); font-weight: 600; font-style: italic; padding: 10px 14px; background: var(--paper-dim); border-left: 3px solid var(--ink); margin-bottom: 4px; }
+  .rigor-bar { grid-column: 1/-1; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--rule); margin-top: 4px; background: var(--paper-dim); }
+  .rigor-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .rigor-strong  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+  .rigor-soft    { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .rigor-exec    { background: #e0e7ff; color: #3730a3; border: 1px solid #a5b4fc; }
+  .rigor-deco    { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+  .rigor-cliche  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .rigor-note { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
+  .rigor-score { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 12px; }
   .idea-actions { grid-column: 1/-1; display: flex; justify-content: flex-end; padding-top: 10px; }
   .btn-pager { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 14px; border: 1px solid var(--ink); background: none; color: var(--ink); border-radius: 2px; cursor: pointer; transition: background .15s, color .15s; }
   .btn-pager:hover { background: var(--ink); color: var(--paper); }
@@ -632,12 +643,21 @@ Be specific. Name real events, real trends, real cultural figures. This is the r
       2000
     );
 
-    // ── PHASE 3: Idea Generation
-    setStatus('<span class="pulse-dot"></span> Phase 3 of 3 · Generating campaign ideas…');
+    // ── PHASE 3: Idea Generation (Barry-informed)
+    setStatus('<span class="pulse-dot"></span> Phase 3 of 4 · Generating campaign ideas…');
+    const BARRY_PRINCIPLES = `You generate ideas grounded in the principles of The Advertising Concept Book by Pete Barry:
+- Single-minded propositions only. One idea. Not a list dressed as an idea.
+- Human insight over demographics. Real tension, not audience description.
+- Concept before execution. The idea must survive without the execution.
+- Reduction over ornamentation. Strip it until it breaks, then add one thing back.
+- Originality as discipline. Not default category conventions dressed up.
+- Execution as proof, not decoration. One execution should prove the idea is real.
+Before any idea lands, ask: Is this already in the category? Is this just polished convention? Is the insight sharp? Is this brave for the right reason?`;
+
     const ideasRaw = await claudeCall(
       apiKey,
-      `You are a world-class creative director, strategist, and CMO combined — the kind of person who has won at Cannes, grown brands 10x, and understands culture deeply. You generate ideas that are simultaneously brilliant, executable, and culturally resonant. You think in stunts, partnerships, product innovations, experiences, and cultural statements — not just ads.`,
-      `You are generating breakthrough campaign ideas for ${b.name}.
+      `You are a world-class creative director, CMO, and brand strategist who has won at Cannes and built culturally resonant campaigns. ${BARRY_PRINCIPLES}`,
+      `Generate exactly ${count} campaign ideas for ${b.name} that connect the brand to what is happening in culture RIGHT NOW.
 
 ═══ BRAND INTELLIGENCE ═══
 ${brandIntel}
@@ -645,31 +665,31 @@ ${brandIntel}
 ═══ LIVE CULTURAL SCAN ═══
 ${culturalScan}
 
-═══ YOUR TASK ═══
-Generate exactly ${count} campaign ideas that connect ${b.name} to what is happening in culture RIGHT NOW. Every idea must:
+═══ GENERATION RULES ═══
+Every idea must:
+- Start from a REAL human tension — not a demographic, not a product feature. A genuine tension people feel.
+- Be rooted in a SPECIFIC cultural moment from the scan above
+- Pass the reduction test: can you express it in 8 words or fewer?
+- Be execution-independent: the idea works across channels, not just one format
+- Avoid category conventions — what does every brand in this space do? Do the opposite.
+- Think beyond ads: stunts, partnerships, product innovations, cultural interventions, earned media, drops, experiences
 
-- Be rooted in a SPECIFIC cultural moment, trend, or tension from the cultural scan above
-- Be authentically on-brand per the brand brief
-- Have a clear "why now" — why this idea only works at this exact cultural moment
-- Be ambitious but executable
-- Think beyond standard advertising: consider product innovations, social stunts, experiential activations, brand partnerships, cultural interventions, earned media plays, creator collabs, limited drops, pop-ups, tech integrations
-
-Think like: What would make the internet stop scrolling? What would get picked up by press? What would people screenshot and send to their friends?
-
-Score each idea 1-10 for breakthrough potential (be honest — a 10 is genuinely Cannes-worthy).
+Score 1–10 for breakthrough potential. Be brutal — a 10 is genuinely Cannes-worthy and most ideas aren't.
 
 Return a JSON array with exactly ${count} objects:
 {
-  "headline": "punchy campaign name or concept title (max 10 words)",
-  "platform": "primary channel(s) e.g. TikTok, Instagram + OOH, Experiential + Earned Media",
-  "format": "specific format e.g. social stunt, brand partnership, product drop + OOH, experiential activation",
-  "whyNow": "1-2 sentences citing the specific cultural moment or trend that makes this idea urgent",
-  "execution": "3-4 sentences on exactly how this plays out — be specific about mechanics, partners, or creative approach",
+  "headline": "campaign name (max 10 words)",
+  "handle": "core idea in 8 words or fewer — the irreducible thing",
+  "humanTension": "the real human tension this idea exploits (1 sharp sentence)",
+  "platform": "primary channel(s)",
+  "format": "specific format e.g. social stunt, cultural intervention, product drop + OOH",
+  "whyNow": "1-2 sentences on why this only works at this exact cultural moment",
+  "execution": "3-4 sentences — specific mechanics, partners, or creative approach",
   "score": 8,
-  "sourceSignals": "comma-separated list of the specific trends/events/signals this idea connects"
+  "sourceSignals": "comma-separated signals this idea connects"
 }
 
-Rank by score descending. Return ONLY the JSON array, no markdown, no explanation.`,
+Rank by score descending. Return ONLY the JSON array, no markdown.`,
       8192
     );
 
@@ -677,6 +697,54 @@ Rank by score descending. Return ONLY the JSON array, no markdown, no explanatio
     try { ideas = JSON.parse(ideasRaw); }
     catch { const m = ideasRaw.match(/\[[\s\S]*\]/); ideas = m ? JSON.parse(m[0]) : null; }
     if (!ideas) throw new Error('Could not parse ideas from response.');
+
+    // ── PHASE 4: Concept Rigor Evaluation (Barry Diagnosis)
+    setStatus('<span class="pulse-dot"></span> Phase 4 of 4 · Running concept rigor engine…');
+    const RIGOR_SYSTEM = `You are a senior advertising concept partner grounded in The Advertising Concept Book by Pete Barry. You are not polite to weak thinking. You spar, build, and compress. You diagnose ideas ruthlessly and honestly using these labels:
+- Strong Backbone: real human tension, execution-independent, reducible, original
+- Promising but Soft: good instinct, insight not yet sharp enough, needs reduction
+- Execution-Led: the execution is the idea — remove it and nothing remains
+- Decorative: aesthetic polish masking absence of concept
+- Cliché Risk: idea exists in the category or culture already
+
+You test: Is the insight real? Is it reducible? Is it portable across channels? Does it avoid category convention? You rebuild stronger. You do not agree without interrogation.`;
+
+    const ideasForRigor = ideas.map((idea, i) => `[${i}] "${idea.headline}" — Handle: "${idea.handle || ''}" — Tension: "${idea.humanTension || ''}" — Execution: "${idea.execution}"`).join('\n');
+
+    const rigorRaw = await claudeCall(
+      apiKey,
+      RIGOR_SYSTEM,
+      `Diagnose each of the following ${ideas.length} campaign ideas for ${b.name}. Be direct and sharp. Do not soften weak diagnoses.
+
+${ideasForRigor}
+
+For each idea return a JSON array with exactly ${ideas.length} objects in the same order:
+{
+  "index": 0,
+  "rigorLabel": "one of: Strong Backbone | Promising but Soft | Execution-Led | Decorative | Cliché Risk",
+  "rigorNote": "1-2 sharp sentences — what's working or broken, and the one thing that would make it stronger",
+  "rigorScore": 8
+}
+
+rigorScore is 1–10 for concept strength independent of cultural timing (pure idea quality).
+Return ONLY the JSON array, no markdown.`,
+      4096
+    );
+
+    let rigorResults;
+    try { rigorResults = JSON.parse(rigorRaw); }
+    catch { const m = rigorRaw.match(/\[[\s\S]*\]/); rigorResults = m ? JSON.parse(m[0]) : null; }
+
+    // Merge rigor results into ideas
+    if (rigorResults) {
+      rigorResults.forEach(r => {
+        if (ideas[r.index]) {
+          ideas[r.index].rigorLabel = r.rigorLabel;
+          ideas[r.index].rigorNote = r.rigorNote;
+          ideas[r.index].rigorScore = r.rigorScore;
+        }
+      });
+    }
 
     document.getElementById('sourceLog').textContent =
       `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}`;
@@ -926,8 +994,9 @@ window.open1Pager = function(i) {
     </div>
 
     <div class="headline-block">
-      <div class="eyebrow">Campaign Concept</div>
+      <div class="eyebrow">${idea.rigorLabel || 'Campaign Concept'}</div>
       <div class="headline">${idea.headline}</div>
+      ${idea.handle ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(7px,.85vw,10px);color:${ac};font-style:italic;margin-bottom:4%;">"${idea.handle}"</div>` : ''}
       <div class="chips">
         <span class="chip chip-accent">${idea.platform}</span>
         <span class="chip">${idea.format}</span>
@@ -935,6 +1004,7 @@ window.open1Pager = function(i) {
     </div>
 
     <div class="brief-block">
+      ${idea.humanTension ? `<div style="font-size:clamp(9px,1.05vw,12px);color:#e5e7eb;font-style:italic;font-weight:600;margin-bottom:4%;padding-bottom:3%;border-bottom:1px solid #1a1a24;">${idea.humanTension}</div>` : ''}
       <div class="brief-grid">
         <div>
           <div class="brief-field-label">Why Now</div>
@@ -945,8 +1015,9 @@ window.open1Pager = function(i) {
           <div class="brief-field-text">${idea.execution}</div>
         </div>
       </div>
+      ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
       <div class="footer-bar">
-        <span class="footer-scout">🔭 Scout · Autonomous Intelligence</span>
+        <span class="footer-scout">🔭 Scout · Concept Rigor Engine</span>
         <span class="footer-year">${year}</span>
       </div>
     </div>
@@ -992,12 +1063,18 @@ function renderIdeas(ideas, brand) {
   _lastBrand = brand;
   const now = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   document.getElementById('briefMeta').textContent = `${ideas.length} ideas · ${brand} · ${now}`;
-  document.getElementById('ideasContainer').innerHTML = ideas.map((idea, i)=>`
+  document.getElementById('ideasContainer').innerHTML = ideas.map((idea, i)=>{
+    const labelClass = {
+      'Strong Backbone':'rigor-strong','Promising but Soft':'rigor-soft',
+      'Execution-Led':'rigor-exec','Decorative':'rigor-deco','Cliché Risk':'rigor-cliche'
+    }[idea.rigorLabel] || 'rigor-deco';
+    return `
     <div class="idea-card">
       <div class="idea-header">
         <div class="idea-rank ${rankClass(idea.score)}">${idea.score}</div>
         <div class="idea-title-wrap">
           <div class="idea-headline">${esc(idea.headline)}</div>
+          ${idea.handle?`<div class="idea-handle">"${esc(idea.handle)}"</div>`:''}
           <div class="idea-chips">
             <span class="chip chip-platform">${esc(idea.platform)}</span>
             <span class="chip">${esc(idea.format)}</span>
@@ -1005,12 +1082,20 @@ function renderIdeas(ideas, brand) {
         </div>
       </div>
       <div class="idea-body">
+        ${idea.humanTension?`<div class="idea-tension" style="grid-column:1/-1">${esc(idea.humanTension)}</div>`:''}
         <div class="idea-field"><div class="idea-field-label">Why now</div><div class="idea-field-text">${esc(idea.whyNow)}</div></div>
         <div class="idea-field"><div class="idea-field-label">Execution</div><div class="idea-field-text">${esc(idea.execution)}</div></div>
         ${idea.sourceSignals?`<div class="idea-signals">Signals · ${esc(idea.sourceSignals)}</div>`:''}
+        ${idea.rigorLabel?`
+        <div class="rigor-bar">
+          <span class="rigor-label ${labelClass}">${esc(idea.rigorLabel)}</span>
+          <span class="rigor-note">${esc(idea.rigorNote||'')}</span>
+          ${idea.rigorScore?`<span class="rigor-score">Concept ${idea.rigorScore}/10</span>`:''}
+        </div>`:''}
         <div class="idea-actions"><button class="btn-pager" onclick="open1Pager(${i})">Generate 1-Pager</button></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   document.getElementById('results').classList.add('visible');
   document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
 }
