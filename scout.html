@@ -24,46 +24,39 @@
   body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
   /* MASTHEAD */
-  .masthead { border-bottom: 2px solid var(--ink); padding: 0 40px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; height: 64px; }
-  .masthead-left { display: flex; align-items: center; gap: 14px; border-right: 1px solid var(--rule); }
+  .masthead { border-bottom: 2px solid var(--ink); padding: 0 40px; display: grid; grid-template-columns: auto 1fr auto; align-items: stretch; height: 64px; gap: 0; }
+  .masthead-left { display: flex; align-items: center; gap: 14px; padding-right: 28px; border-right: 1px solid var(--rule); }
   .live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--signal); flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(232,68,26,.4)} 50%{opacity:.85;box-shadow:0 0 0 6px rgba(232,68,26,0)} }
   .wordmark { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
-  .masthead-center { display: flex; align-items: center; justify-content: center; padding: 0 24px; }
-  .dateline { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
-  .masthead-right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; border-left: 1px solid var(--rule); padding-left: 20px; }
+  .masthead-center { display: flex; align-items: center; gap: 16px; padding: 0 28px; }
+  .brand-select-wrap { display: flex; align-items: center; gap: 10px; }
+  .brand-select-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .brand-select { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 3px; padding: 6px 32px 6px 12px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a9488'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; min-width: 200px; transition: border-color .15s; }
+  .brand-select:focus { border-color: var(--signal); }
+  .new-brand-btn { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 5px 12px; border: 1px dashed var(--rule); border-radius: 3px; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .15s; }
+  .new-brand-btn:hover { border-color: var(--signal); color: var(--signal); }
+  .dateline { font-family: var(--mono); font-size: 9px; color: var(--ghost); letter-spacing: .08em; text-transform: uppercase; }
+  .masthead-right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; border-left: 1px solid var(--rule); padding-left: 24px; }
   .key-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
-  .key-input { background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; font-family: var(--mono); font-size: 11px; color: var(--ink); outline: none; width: 200px; transition: border-color .15s; }
+  .key-input { background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; font-family: var(--mono); font-size: 11px; color: var(--ink); outline: none; width: 190px; transition: border-color .15s; }
   .key-input:focus { border-color: var(--signal); }
 
   /* LAYOUT */
-  .shell { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 64px); }
-
-  /* SIDEBAR */
-  .sidebar { border-right: 1px solid var(--rule); display: flex; flex-direction: column; background: var(--paper-dim); }
-  .sidebar-head { padding: 20px 20px 12px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between; }
-  .sidebar-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
-  .new-brand-btn { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .08em; text-transform: uppercase; background: none; border: none; cursor: pointer; padding: 0; transition: opacity .15s; }
-  .new-brand-btn:hover { opacity: .7; }
-  .brand-list { flex: 1; overflow-y: auto; padding: 8px 0; }
-  .brand-item { padding: 12px 20px; cursor: pointer; border-left: 3px solid transparent; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .brand-item:hover { background: var(--paper); }
-  .brand-item.active { border-left-color: var(--signal); background: var(--paper); }
-  .brand-item-name { font-size: 13px; font-weight: 600; color: var(--ink); }
-  .brand-item-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 2px; }
-  .brand-item-del { background: none; border: none; font-size: 14px; color: var(--ghost); cursor: pointer; padding: 0; opacity: 0; transition: opacity .15s, color .15s; flex-shrink: 0; }
-  .brand-item:hover .brand-item-del { opacity: 1; }
-  .brand-item-del:hover { color: var(--signal); }
-  .sidebar-empty { padding: 24px 20px; font-family: var(--mono); font-size: 10px; color: var(--ghost); letter-spacing: .06em; line-height: 1.8; }
+  .shell { min-height: calc(100vh - 64px); }
 
   /* MAIN */
-  .main { padding: 48px 48px 100px; max-width: 760px; }
+  .main { padding: 48px 48px 100px; max-width: 760px; margin: 0 auto; }
 
-  /* BRAND EDITOR */
+  /* BRAND HEADER */
+  .brand-header { margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
+  .brand-header-name { font-size: 32px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); line-height: 1; margin-bottom: 6px; }
+  .brand-header-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+
+  /* BRAND EDITOR (add brand modal) */
   .brand-editor { display: none; }
   .brand-editor.visible { display: block; }
   .editor-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
-  .editor-name { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
   .editor-name-input { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); background: none; border: none; border-bottom: 2px solid var(--signal); outline: none; width: 100%; font-family: var(--sans); }
   .save-chip { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 2px; background: none; color: var(--muted); cursor: pointer; transition: all .15s; }
   .save-chip:hover { border-color: var(--signal); color: var(--signal); }
@@ -183,7 +176,16 @@
     <div class="live-dot"></div>
     <span class="wordmark">Scout</span>
   </div>
-  <div class="masthead-center"><span class="dateline" id="dateline"></span></div>
+  <div class="masthead-center">
+    <div class="brand-select-wrap">
+      <span class="brand-select-label">Brand</span>
+      <select class="brand-select" id="brandSelect" onchange="selectBrand(this.value)">
+        <option value="">— select a brand —</option>
+      </select>
+      <button class="new-brand-btn" onclick="promptNewBrand()">+ Add Brand</button>
+    </div>
+    <span class="dateline" id="dateline"></span>
+  </div>
   <div class="masthead-right">
     <span class="key-label">API Key</span>
     <input type="password" class="key-input" id="apiKey" placeholder="sk-ant-api03-..." />
@@ -191,63 +193,49 @@
 </header>
 
 <div class="shell">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-head">
-      <span class="sidebar-label">Brands</span>
-      <button class="new-brand-btn" onclick="newBrand()">+ New</button>
-    </div>
-    <div class="brand-list" id="brandList"></div>
-    <div class="sidebar-empty" id="sidebarEmpty">No brands yet.<br>Click + New to add one.</div>
-  </aside>
-
-  <!-- MAIN -->
   <main class="main">
 
     <!-- EMPTY STATE -->
     <div class="empty-state" id="emptyState">
       <div class="empty-eyebrow">Overnight signal intelligence</div>
-      <h1 class="empty-h1">Your brand docs.<br><em>Tomorrow's</em> ideas.</h1>
-      <p class="empty-sub">Create a brand, add your documents and URLs, and Scout generates campaign ideas grounded in what's moving right now.</p>
-      <div class="empty-actions">
-        <button class="cta-primary" onclick="newBrand()">Create your first brand</button>
-        <button class="cta-secondary" onclick="loadDemo()">Try Ring Pop demo</button>
-      </div>
+      <h1 class="empty-h1">Select a brand.<br><em>Scout</em> does the rest.</h1>
+      <p class="empty-sub">Pick a brand from the dropdown, enter your API key, and Scout scans culture and generates campaign ideas grounded in what's moving right now.</p>
     </div>
 
-    <!-- BRAND EDITOR -->
+    <!-- BRAND VIEW -->
     <div class="brand-editor" id="brandEditor">
 
-      <div class="editor-head">
-        <input class="editor-name-input" id="editorName" placeholder="Brand name" oninput="markDirty()" />
-        <button class="save-chip" id="saveChip" onclick="saveBrand()">Save</button>
+      <div class="brand-header">
+        <div class="brand-header-name" id="brandHeaderName"></div>
+        <div class="brand-header-meta" id="brandHeaderMeta"></div>
       </div>
 
-      <!-- SOURCES -->
-      <div class="section-label">Extra context <span style="font-size:8px;opacity:.5;text-transform:none;letter-spacing:0">(optional — Scout works without this)</span></div>
-
-      <div id="sourceListWrap">
-        <div class="drop-zone-compact" id="dropZone">
-          <input type="file" id="pdfInput" accept=".pdf" multiple />
-          <div class="dz-glyph">//</div>
-          <div class="dz-text">Drop PDFs here or click to browse</div>
-          <div class="dz-sub">Brand book · Campaign history · Tone guide · Activation recaps</div>
+      <!-- OPTIONAL EXTRA CONTEXT -->
+      <details style="margin-bottom:28px;">
+        <summary style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);display:inline-block;transition:transform .2s;margin-top:-2px;" id="extraArrow"></span>
+          Extra context <span style="opacity:.5;font-size:8px;text-transform:none;letter-spacing:0">&nbsp;— optional PDFs or URLs to enrich brand intelligence</span>
+        </summary>
+        <div id="sourceListWrap">
+          <div class="drop-zone-compact" id="dropZone">
+            <input type="file" id="pdfInput" accept=".pdf" multiple />
+            <div class="dz-glyph">//</div>
+            <div class="dz-text">Drop PDFs here or click to browse</div>
+            <div class="dz-sub">Brand book · Campaign history · Tone guide · Activation recaps</div>
+          </div>
         </div>
-      </div>
-
-      <div class="add-row">
-        <label class="add-btn">
-          <input type="file" id="addMoreInput" accept=".pdf" multiple />
-          + Add PDF
-        </label>
-        <button class="add-btn" onclick="showUrlRow()">+ Add URL</button>
-      </div>
-
-      <div class="url-row" id="urlRow" style="display:none;">
-        <input type="url" class="url-input" id="urlInput" placeholder="https://yoursite.com/brand-page" />
-        <button class="url-fetch-btn" id="urlFetchBtn" onclick="fetchUrl()">Fetch</button>
-      </div>
+        <div class="add-row">
+          <label class="add-btn">
+            <input type="file" id="addMoreInput" accept=".pdf" multiple />
+            + Add PDF
+          </label>
+          <button class="add-btn" onclick="showUrlRow()">+ Add URL</button>
+        </div>
+        <div class="url-row" id="urlRow" style="display:none;">
+          <input type="url" class="url-input" id="urlInput" placeholder="https://yoursite.com/brand-page" />
+          <button class="url-fetch-btn" id="urlFetchBtn" onclick="fetchUrl()">Fetch</button>
+        </div>
+      </details>
 
       <!-- RUN -->
       <div class="run-strip">
@@ -313,58 +301,59 @@ function loadStore() {
 }
 function saveStore(store) { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
 
+// ── DEFAULT BRANDS (seeded on first load)
+const DEFAULT_BRANDS = [
+  {
+    id: 'bazooka',
+    name: 'Bazooka Candy Brands',
+    url: 'https://www.bazookacandybrands.com/about-us/',
+    sources: []
+  },
+  {
+    id: 'otterbox',
+    name: 'OtterBox',
+    url: 'https://www.otterbox.com/',
+    sources: []
+  },
+];
+
 // ── STATE
-let brands = loadStore();   // { id: { id, name, sources: [{type,name,text}] } }
+let brands = loadStore();
 let activeBrandId = null;
-let dirty = false;
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-// ── SIDEBAR
-function renderSidebar() {
-  const list = document.getElementById('brandList');
-  const empty = document.getElementById('sidebarEmpty');
+// Seed default brands if not already present
+for (const def of DEFAULT_BRANDS) {
+  if (!brands[def.id]) {
+    brands[def.id] = { id: def.id, name: def.name, url: def.url, sources: [] };
+  }
+}
+saveStore(brands);
+
+// ── DROPDOWN
+function renderDropdown() {
+  const sel = document.getElementById('brandSelect');
   const ids = Object.keys(brands);
-  empty.style.display = ids.length ? 'none' : 'block';
-  list.innerHTML = ids.map(id => {
-    const b = brands[id];
-    const srcCount = b.sources ? b.sources.length : 0;
-    return `<div class="brand-item${activeBrandId===id?' active':''}" onclick="selectBrand('${id}')">
-      <div>
-        <div class="brand-item-name">${esc(b.name||'Untitled')}</div>
-        <div class="brand-item-meta">${srcCount} source${srcCount!==1?'s':''}</div>
-      </div>
-      <button class="brand-item-del" onclick="deleteBrand(event,'${id}')">×</button>
-    </div>`;
-  }).join('');
+  sel.innerHTML = '<option value="">— select a brand —</option>' +
+    ids.map(id => `<option value="${id}"${activeBrandId===id?' selected':''}>${esc(brands[id].name||'Untitled')}</option>`).join('');
 }
 
 // ── SELECT / NEW / DELETE BRAND
 window.selectBrand = function(id) {
-  activeBrandId = id;
-  dirty = false;
-  renderSidebar();
+  activeBrandId = id || null;
+  renderDropdown();
   renderEditor();
 };
 
-window.newBrand = function() {
+window.promptNewBrand = function() {
+  const name = prompt('Brand name:');
+  if (!name || !name.trim()) return;
   const id = genId();
-  brands[id] = { id, name: '', sources: [] };
+  brands[id] = { id, name: name.trim(), sources: [] };
   saveStore(brands);
   activeBrandId = id;
-  dirty = true;
-  renderSidebar();
-  renderEditor();
-  setTimeout(() => document.getElementById('editorName').focus(), 50);
-};
-
-window.deleteBrand = function(e, id) {
-  e.stopPropagation();
-  if (!confirm(`Delete ${brands[id]?.name || 'this brand'}?`)) return;
-  delete brands[id];
-  saveStore(brands);
-  if (activeBrandId === id) { activeBrandId = null; }
-  renderSidebar();
+  renderDropdown();
   renderEditor();
 };
 
@@ -377,10 +366,12 @@ function renderEditor() {
   }
   empty.classList.add('hidden'); editor.classList.add('visible');
   const b = brands[activeBrandId];
-  document.getElementById('editorName').value = b.name || '';
+  document.getElementById('brandHeaderName').textContent = b.name || 'Untitled';
+  const srcCount = (b.sources||[]).length;
+  document.getElementById('brandHeaderMeta').textContent =
+    b.url ? b.url : (srcCount ? `${srcCount} source${srcCount!==1?'s':''}` : 'No extra sources · Scout uses its own brand knowledge');
   document.getElementById('results').classList.remove('visible');
   renderSources();
-  updateSaveChip(false);
 }
 
 function renderSources() {
@@ -415,25 +406,10 @@ window.removeSource = function(i) {
   brands[activeBrandId].sources.splice(i,1);
   saveStore(brands);
   renderSources();
-  renderSidebar();
 };
 
-// ── SAVE
-window.markDirty = function() { dirty = true; updateSaveChip(false); };
-function updateSaveChip(saved) {
-  const chip = document.getElementById('saveChip');
-  chip.textContent = saved ? 'Saved ✓' : 'Save';
-  chip.className = 'save-chip' + (saved ? ' saved' : '');
-}
-window.saveBrand = function() {
-  if (!activeBrandId) return;
-  brands[activeBrandId].name = document.getElementById('editorName').value.trim() || 'Untitled';
-  saveStore(brands);
-  dirty = false;
-  updateSaveChip(true);
-  renderSidebar();
-  setTimeout(() => updateSaveChip(false), 2000);
-};
+// ── SAVE (unused stub kept for compat)
+window.saveBrand = function() {};
 
 // ── ADD PDF
 async function addPdfs(files) {
@@ -443,11 +419,11 @@ async function addPdfs(files) {
     if (!file.name.endsWith('.pdf')) continue;
     const src = { type: 'pdf', name: file.name, status: 'reading', text: '' };
     b.sources.push(src);
-    renderSources(); renderSidebar();
+    renderSources(); renderDropdown();
     try { src.text = await readPdf(file); src.status = 'done'; }
     catch { src.status = 'error'; }
     saveStore(brands);
-    renderSources(); renderSidebar();
+    renderSources(); renderDropdown();
   }
 }
 document.getElementById('pdfInput').addEventListener('change', e => addPdfs(e.target.files));
@@ -475,7 +451,7 @@ window.fetchUrl = async function() {
   const b = brands[activeBrandId];
   const src = { type: 'url', name: urlVal, status: 'reading', text: '' };
   b.sources.push(src);
-  renderSources(); renderSidebar();
+  renderSources(); renderDropdown();
   async function tryFetch(url) {
     // Try Jina Reader v2 (more permissive endpoint)
     const endpoints = [
@@ -508,7 +484,7 @@ window.fetchUrl = async function() {
     src.status = 'error';
     src.name = urlVal + ' (failed — ' + e.message + ')';
   }
-  saveStore(brands); renderSources(); renderSidebar();
+  saveStore(brands); renderSources(); renderDropdown();
   btn.disabled = false; btn.textContent = 'Fetch';
 };
 
@@ -527,7 +503,7 @@ window.loadDemo = function() {
   };
   saveStore(brands);
   activeBrandId = id;
-  renderSidebar(); renderEditor();
+  renderDropdown(); renderEditor();
 };
 
 // ── STATUS
@@ -861,7 +837,7 @@ window.toggleLog = function() {
 };
 
 // ── INIT
-renderSidebar();
+renderDropdown();
 renderEditor();
 </script>
 </body>
