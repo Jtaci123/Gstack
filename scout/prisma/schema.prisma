@@ -1,0 +1,41 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String
+  audience    String?
+  tone        String?
+  history     String?
+  doList      String?
+  dontList    String?
+  searchTerms String?
+  email       String
+  sendTime    String   @default("07:00")
+  ideasPerRun Int      @default(3)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ideas       Idea[]
+}
+
+model Idea {
+  id            String   @id @default(cuid())
+  brandId       String
+  brand         Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  headline      String
+  platform      String
+  format        String
+  whyNow        String
+  execution     String
+  score         Int
+  sourceSignals String?
+  imageUrl      String?
+  createdAt     DateTime @default(now())
+}
