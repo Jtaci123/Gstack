@@ -272,7 +272,7 @@
           <div class="brief-meta" id="briefMeta"></div>
         </div>
         <div id="ideasContainer"></div>
-        <button class="source-log-toggle" id="logToggle" onclick="toggleLog()">Signal data</button>
+        <button class="source-log-toggle" id="logToggle" onclick="toggleLog()">Research log · Brand intel + Cultural scan</button>
         <div class="source-log" id="sourceLog"></div>
       </div>
 
@@ -530,33 +530,6 @@ window.loadDemo = function() {
   renderSidebar(); renderEditor();
 };
 
-// ── SIGNALS
-function signals(brand) {
-  return `LIVE CULTURAL SIGNALS — ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
-
-Reddit (r/nostalgia, r/GenZ, r/90smovies, r/cassetteculture)
-- "Why Gen Z Is Reviving 90s Fashion and Pop Culture" — 90s revival accelerating; "vintage fashion, iconic music, and retro pop culture are making a huge comeback"
-- "Why flipping is killing the culture" 266 upvotes — anti-clout backlash: "Nothing can be fun; all must be hustle." Authenticity is the counter-cultural move.
-- Rush Hour (1998) trigger-warning controversy viral (461 comments) — audience fiercely defending unfiltered 90s culture
-
-Hacker News
-- Oura Ring 5 launch covered twice this week — smart ring category mainstream; ring form factor top of mind across tech AND fashion simultaneously
-- "40% smaller, more like a regular ring" — wearable-as-jewelry positioning gaining traction in premium tech
-
-TikTok / Social
-- #Y2Kaesthetic trending — 90s candy visuals driving heavy engagement
-- "Childhood snacks" unboxing format averaging 2M+ views
-- Anti-luxury / authenticity content going viral ("just let things be fun again")
-
-Cultural Macro
-- Wearable tech exploding: Apple Watch Ultra, Oura Ring 5, Samsung Galaxy Ring all live simultaneously
-- Y2K aesthetic running through fashion, music, beauty, and tech at once
-- Gen Z discretionary spend on nostalgic products +34% YoY
-- Anti-optimization sentiment rising: pushback against wellness and productivity content
-
-Brand: ${brand}`;
-}
-
 // ── STATUS
 const statusBar = document.getElementById('statusBar');
 const errorBar  = document.getElementById('errorBar');
@@ -565,12 +538,33 @@ function clearStatus() { statusBar.classList.remove('visible'); }
 function setError(m)  { errorBar.textContent = m; errorBar.classList.add('visible'); }
 function clearError() { errorBar.classList.remove('visible'); }
 
-// ── RUN
+async function claudeCall(apiKey, systemPrompt, userPrompt, maxTokens=2048) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    }),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+  const d = await res.json();
+  return d.content[0].text.trim();
+}
+
+// ── RUN (3-phase pipeline)
 window.runScout = async function() {
   if (!activeBrandId) return;
   const b = brands[activeBrandId];
   const apiKey = document.getElementById('apiKey').value.trim();
-  const count  = document.getElementById('ideaCount').value;
+  const count  = parseInt(document.getElementById('ideaCount').value, 10);
   clearError();
   document.getElementById('results').classList.remove('visible');
 
@@ -581,57 +575,114 @@ window.runScout = async function() {
 
   const btn = document.getElementById('runBtn');
   btn.disabled = true;
-
-  const sig = signals(b.name);
-  document.getElementById('sourceLog').textContent = sig;
-
-  const combined = ready.map((s,i) =>
-    `--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,6000)}`).join('\n\n');
-
-  const prompt = `You are Scout, an autonomous marketing intelligence system.
-
-You have been given the following brand sources for ${b.name}:
-
-${combined}
-
-Read all sources carefully. Extract and understand: target audience, tone & voice, brand history, past campaign learnings, what the brand stands for and avoids.
-
-Then, using your brand understanding alongside these live cultural signals:
-
-${sig}
-
-Generate exactly ${count} ranked marketing campaign ideas that intersect what is trending RIGHT NOW with what is on-brand for ${b.name}. Every idea must be grounded in specific signals from the data above.
-
-Return a JSON array with exactly ${count} objects:
-- headline: string (punchy campaign name, max 10 words)
-- platform: string (e.g. "TikTok", "Instagram + OOH")
-- format: string (e.g. "3-part video series", "limited drop + OOH")
-- whyNow: string (1-2 sentences citing specific signal data)
-- execution: string (2-3 sentences on how to execute)
-- score: number (1-10, breakthrough potential)
-- sourceSignals: string (comma-separated signals used)
-
-Rank by score descending. Return ONLY the JSON array, no markdown.`;
+  const combined = ready.map((s,i) => `--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,5000)}`).join('\n\n');
 
   try {
-    setStatus('Scanning signals · Reading brand sources · Generating ideas');
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:4096, messages:[{role:'user',content:prompt}] }),
-    });
-    if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||`${res.status}`); }
-    const data = await res.json();
-    const raw  = data.content[0].text.trim();
+    // ── PHASE 1: Brand Intelligence
+    setStatus('<span class="pulse-dot"></span> Phase 1 of 3 · Reading brand documents…');
+    const brandIntel = await claudeCall(
+      apiKey,
+      `You are a senior brand strategist at a top creative agency. Extract a sharp, structured brand brief from the provided documents. Be specific and honest — note what the brand does well, where it's culturally relevant, and any weaknesses or white space.`,
+      `Brand: ${b.name}
+
+SOURCE DOCUMENTS:
+${combined}
+
+Extract a structured brand brief covering:
+1. BRAND ESSENCE: What this brand truly stands for (not marketing copy — the real thing)
+2. AUDIENCE: Who they are, how they consume culture, what they care about
+3. TONE & VOICE: How the brand talks, what it avoids
+4. CULTURAL EQUITY: What authentic cultural moments/movements this brand can credibly own
+5. RECENT TERRITORY: What campaigns, activations, or moves the brand has made recently
+6. WHITE SPACE: What opportunities the brand hasn't seized yet
+7. DO / DON'T: Hard rules for any campaign
+
+Be direct and specific. This brief will be used to generate breakthrough campaign ideas.`,
+      1500
+    );
+
+    // ── PHASE 2: Cultural Scan
+    setStatus('<span class="pulse-dot"></span> Phase 2 of 3 · Scanning cultural signals…');
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const culturalScan = await claudeCall(
+      apiKey,
+      `You are a cultural intelligence analyst and trend forecaster. Your job is to surface the most creatively explosive cultural moments, trends, and tensions happening RIGHT NOW — the stuff that smart brands can tap into for breakthrough work.`,
+      `Today is ${today}. Brand we are developing ideas for: ${b.name}
+
+Produce a comprehensive cultural scan covering what is happening RIGHT NOW. Think like a mix of a trend agency, a social listening platform, and a cultural critic. Include:
+
+1. TRENDING MOMENTS: What is the internet, social media, and culture talking about this week? Specific viral moments, memes, controversies, conversations (name them specifically)
+
+2. BIG CULTURAL EVENTS UPCOMING: Sports (leagues, championships, games), movies releasing, album drops, fashion weeks, award shows, holidays, cultural moments in the next 60 days. Be specific with names and dates where known.
+
+3. MACRO CULTURAL TENSIONS: What are the big cultural debates, anxieties, and movements right now? (e.g. anti-hustle, nostalgia revival, AI anxiety, authenticity vs. performance, etc.)
+
+4. PLATFORM TRENDS: What formats and trends are exploding on TikTok, Instagram, YouTube, X right now?
+
+5. BRAND PARTNERSHIP LANDSCAPE: What brand collabs, celebrity partnerships, or co-branding moves are generating buzz? What categories are fertile ground for collabs?
+
+6. EMERGING SUBCULTURES: What niche communities, aesthetics, or micro-trends are about to go mainstream?
+
+7. PRODUCT INNOVATION SIGNALS: What consumer behaviors, desires, or unmet needs are trending that could inspire product innovation?
+
+Be specific. Name real events, real trends, real cultural figures. This is the raw material for Cannes-winning campaign ideas.`,
+      2000
+    );
+
+    // ── PHASE 3: Idea Generation
+    setStatus('<span class="pulse-dot"></span> Phase 3 of 3 · Generating campaign ideas…');
+    const ideasRaw = await claudeCall(
+      apiKey,
+      `You are a world-class creative director, strategist, and CMO combined — the kind of person who has won at Cannes, grown brands 10x, and understands culture deeply. You generate ideas that are simultaneously brilliant, executable, and culturally resonant. You think in stunts, partnerships, product innovations, experiences, and cultural statements — not just ads.`,
+      `You are generating breakthrough campaign ideas for ${b.name}.
+
+═══ BRAND INTELLIGENCE ═══
+${brandIntel}
+
+═══ LIVE CULTURAL SCAN ═══
+${culturalScan}
+
+═══ YOUR TASK ═══
+Generate exactly ${count} campaign ideas that connect ${b.name} to what is happening in culture RIGHT NOW. Every idea must:
+
+- Be rooted in a SPECIFIC cultural moment, trend, or tension from the cultural scan above
+- Be authentically on-brand per the brand brief
+- Have a clear "why now" — why this idea only works at this exact cultural moment
+- Be ambitious but executable
+- Think beyond standard advertising: consider product innovations, social stunts, experiential activations, brand partnerships, cultural interventions, earned media plays, creator collabs, limited drops, pop-ups, tech integrations
+
+Think like: What would make the internet stop scrolling? What would get picked up by press? What would people screenshot and send to their friends?
+
+Score each idea 1-10 for breakthrough potential (be honest — a 10 is genuinely Cannes-worthy).
+
+Return a JSON array with exactly ${count} objects:
+{
+  "headline": "punchy campaign name or concept title (max 10 words)",
+  "platform": "primary channel(s) e.g. TikTok, Instagram + OOH, Experiential + Earned Media",
+  "format": "specific format e.g. social stunt, brand partnership, product drop + OOH, experiential activation",
+  "whyNow": "1-2 sentences citing the specific cultural moment or trend that makes this idea urgent",
+  "execution": "3-4 sentences on exactly how this plays out — be specific about mechanics, partners, or creative approach",
+  "score": 8,
+  "sourceSignals": "comma-separated list of the specific trends/events/signals this idea connects"
+}
+
+Rank by score descending. Return ONLY the JSON array, no markdown, no explanation.`,
+      4096
+    );
+
     let ideas;
-    try { ideas = JSON.parse(raw); }
-    catch { const m=raw.match(/\[[\s\S]*\]/); ideas=m?JSON.parse(m[0]):null; }
-    if (!ideas) throw new Error('Could not parse response.');
+    try { ideas = JSON.parse(ideasRaw); }
+    catch { const m = ideasRaw.match(/\[[\s\S]*\]/); ideas = m ? JSON.parse(m[0]) : null; }
+    if (!ideas) throw new Error('Could not parse ideas from response.');
+
+    document.getElementById('sourceLog').textContent =
+      `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}`;
+
     renderIdeas(ideas, b.name);
     clearStatus();
   } catch(e) {
-    clearStatus(); setError('Error: '+e.message);
-  } finally { btn.disabled=false; }
+    clearStatus(); setError('Error: ' + e.message);
+  } finally { btn.disabled = false; }
 };
 
 function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid':'rank-lo'; }
