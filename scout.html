@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* ─── TOKENS ─────────────────────────────────────────────────── */
   :root {
     --ink:        #0c0c10;
     --paper:      #f5f3ee;
@@ -16,657 +15,281 @@
     --rule:       #d6d2c8;
     --muted:      #9a9488;
     --ghost:      #c8c4ba;
-    --signal:     #e8441a;   /* the one hot colour — broadcast orange */
+    --signal:     #e8441a;
     --signal-dim: #fce8e2;
-    --night:      #141420;
-    --night-mid:  #1e1e2e;
-    --night-rule: #2a2a3e;
-    --night-muted:#4a4a6a;
     --mono: 'Space Mono', monospace;
     --sans: 'Space Grotesk', sans-serif;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* ─── MASTHEAD ────────────────────────────────────────────────── */
-  .masthead {
-    border-bottom: 2px solid var(--ink);
-    padding: 0 40px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: stretch;
-    height: 64px;
-  }
-  .masthead-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    border-right: 1px solid var(--rule);
-  }
-  /* live dot — the signature element */
-  .live-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--signal);
-    flex-shrink: 0;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,68,26,0.4); }
-    50%       { opacity: 0.85; box-shadow: 0 0 0 6px rgba(232,68,26,0); }
-  }
-  .wordmark {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-  .masthead-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 24px;
-  }
-  .dateline {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .masthead-right {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    border-left: 1px solid var(--rule);
-    padding-left: 20px;
-  }
-  .key-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .key-input {
-    background: var(--paper-dim);
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    padding: 6px 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink);
-    outline: none;
-    width: 200px;
-    transition: border-color 0.15s;
-  }
+  /* MASTHEAD */
+  .masthead { border-bottom: 2px solid var(--ink); padding: 0 40px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; height: 64px; }
+  .masthead-left { display: flex; align-items: center; gap: 14px; border-right: 1px solid var(--rule); }
+  .live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--signal); flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(232,68,26,.4)} 50%{opacity:.85;box-shadow:0 0 0 6px rgba(232,68,26,0)} }
+  .wordmark { font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+  .masthead-center { display: flex; align-items: center; justify-content: center; padding: 0 24px; }
+  .dateline { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .masthead-right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; border-left: 1px solid var(--rule); padding-left: 20px; }
+  .key-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .key-input { background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 10px; font-family: var(--mono); font-size: 11px; color: var(--ink); outline: none; width: 200px; transition: border-color .15s; }
   .key-input:focus { border-color: var(--signal); }
 
-  /* ─── CONTAINER ───────────────────────────────────────────────── */
-  .page {
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 56px 32px 100px;
-  }
+  /* LAYOUT */
+  .shell { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 64px); }
 
-  /* ─── HEADLINE BLOCK ──────────────────────────────────────────── */
-  .headline-block {
-    border-bottom: 1px solid var(--rule);
-    padding-bottom: 40px;
-    margin-bottom: 48px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: end;
-    gap: 32px;
-  }
-  .headline-eyebrow {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--signal);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-  .headline-h1 {
-    font-size: clamp(36px, 5vw, 54px);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-  }
-  .headline-h1 em {
-    font-style: normal;
-    color: var(--signal);
-  }
-  .headline-sub {
-    margin-top: 14px;
-    font-size: 15px;
-    color: var(--muted);
-    line-height: 1.6;
-    max-width: 420px;
-  }
-  .demo-link {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    text-decoration: none;
-    border-bottom: 1px solid var(--rule);
-    padding-bottom: 2px;
-    cursor: pointer;
-    white-space: nowrap;
-    align-self: flex-end;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .demo-link:hover { color: var(--signal); border-color: var(--signal); }
+  /* SIDEBAR */
+  .sidebar { border-right: 1px solid var(--rule); display: flex; flex-direction: column; background: var(--paper-dim); }
+  .sidebar-head { padding: 20px 20px 12px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
+  .new-brand-btn { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .08em; text-transform: uppercase; background: none; border: none; cursor: pointer; padding: 0; transition: opacity .15s; }
+  .new-brand-btn:hover { opacity: .7; }
+  .brand-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .brand-item { padding: 12px 20px; cursor: pointer; border-left: 3px solid transparent; transition: background .15s, border-color .15s; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .brand-item:hover { background: var(--paper); }
+  .brand-item.active { border-left-color: var(--signal); background: var(--paper); }
+  .brand-item-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .brand-item-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 2px; }
+  .brand-item-del { background: none; border: none; font-size: 14px; color: var(--ghost); cursor: pointer; padding: 0; opacity: 0; transition: opacity .15s, color .15s; flex-shrink: 0; }
+  .brand-item:hover .brand-item-del { opacity: 1; }
+  .brand-item-del:hover { color: var(--signal); }
+  .sidebar-empty { padding: 24px 20px; font-family: var(--mono); font-size: 10px; color: var(--ghost); letter-spacing: .06em; line-height: 1.8; }
 
-  /* ─── UPLOAD AREA ─────────────────────────────────────────────── */
-  .upload-section {
-    margin-bottom: 40px;
-  }
-  .section-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--rule);
-  }
+  /* MAIN */
+  .main { padding: 48px 48px 100px; max-width: 760px; }
 
-  .drop-zone {
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    padding: 40px 32px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-    background: var(--paper);
-  }
-  .drop-zone:hover, .drop-zone.drag-over {
-    border-color: var(--signal);
-    background: var(--signal-dim);
-  }
-  .drop-zone input[type="file"] {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer;
-    width: 100%; height: 100%;
-  }
-  .drop-glyph {
-    font-family: var(--mono);
-    font-size: 28px;
-    color: var(--ghost);
-    margin-bottom: 12px;
-    line-height: 1;
-  }
-  .drop-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ink);
-    margin-bottom: 6px;
-  }
-  .drop-sub {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-  .drop-sub strong { color: var(--ink); font-weight: 500; }
+  /* BRAND EDITOR */
+  .brand-editor { display: none; }
+  .brand-editor.visible { display: block; }
+  .editor-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+  .editor-name { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
+  .editor-name-input { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); background: none; border: none; border-bottom: 2px solid var(--signal); outline: none; width: 100%; font-family: var(--sans); }
+  .save-chip { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 2px; background: none; color: var(--muted); cursor: pointer; transition: all .15s; }
+  .save-chip:hover { border-color: var(--signal); color: var(--signal); }
+  .save-chip.saved { border-color: #065f46; color: #065f46; background: #d1fae5; }
 
-  /* ─── FILE LIST ───────────────────────────────────────────────── */
-  .file-list {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 10px;
-  }
-  .file-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--rule);
-    background: var(--paper);
-    transition: background 0.15s;
-  }
-  .file-row:last-child { border-bottom: none; }
-  .file-row:hover { background: var(--paper-dim); }
-  .file-mono {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink);
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .file-chars {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .file-badge {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 2px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
+  /* SECTION LABEL */
+  .section-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  /* SOURCE LIST */
+  .source-list { border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+  .source-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--rule); background: var(--paper); }
+  .source-row:last-child { border-bottom: none; }
+  .source-icon { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; }
+  .source-name { font-family: var(--mono); font-size: 11px; color: var(--ink); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .source-badge { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
   .badge-reading { background: #fef3c7; color: #92400e; }
   .badge-done    { background: #d1fae5; color: #065f46; }
   .badge-error   { background: #fee2e2; color: #991b1b; }
-  .file-del {
-    background: none; border: none;
-    font-family: var(--mono); font-size: 13px;
-    color: var(--ghost); cursor: pointer; padding: 0; flex-shrink: 0;
-    transition: color 0.15s;
-  }
-  .file-del:hover { color: var(--signal); }
+  .source-del { background: none; border: none; font-family: var(--mono); font-size: 13px; color: var(--ghost); cursor: pointer; padding: 0; flex-shrink: 0; transition: color .15s; }
+  .source-del:hover { color: var(--signal); }
 
-  .add-more {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: 8px 0;
-    position: relative;
-    transition: color 0.15s;
-    border: none; background: none;
-  }
-  .add-more:hover { color: var(--signal); }
-  .add-more input[type="file"] {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer;
-    width: 100%; height: 100%;
-  }
+  /* ADD BUTTONS */
+  .add-row { display: flex; gap: 8px; margin-bottom: 32px; }
+  .add-btn { position: relative; display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 7px 14px; border: 1px dashed var(--rule); border-radius: 2px; color: var(--muted); background: none; cursor: pointer; transition: all .15s; }
+  .add-btn:hover { border-color: var(--signal); color: var(--signal); }
+  .add-btn input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 
-  /* ─── RUN STRIP ───────────────────────────────────────────────── */
-  .run-strip {
-    display: flex;
-    gap: 0;
-    border: 2px solid var(--ink);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-top: 40px;
-  }
-  .run-strip input[type="text"] {
-    flex: 1;
-    border: none;
-    border-right: 1px solid var(--ink);
-    padding: 0 20px;
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink);
-    background: var(--paper);
-    outline: none;
-    height: 56px;
-  }
-  .run-strip input::placeholder { color: var(--ghost); }
-  .run-strip select {
-    border: none;
-    border-right: 1px solid var(--ink);
-    padding: 0 16px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    background: var(--paper-dim);
-    outline: none;
-    height: 56px;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-  }
-  .run-btn {
-    padding: 0 32px;
-    background: var(--signal);
-    border: none;
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    cursor: pointer;
-    height: 56px;
-    white-space: nowrap;
-    transition: opacity 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .run-btn:hover { opacity: 0.88; }
-  .run-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .run-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.7);
-  }
-  .run-btn:not(:disabled) .run-dot {
-    animation: pulse 1.5s ease-in-out infinite;
-  }
+  /* URL INPUT ROW */
+  .url-row { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; margin-bottom: 32px; }
+  .url-input { flex: 1; border: none; padding: 9px 14px; font-family: var(--mono); font-size: 11px; color: var(--ink); background: var(--paper); outline: none; }
+  .url-input::placeholder { color: var(--ghost); }
+  .url-fetch-btn { border: none; border-left: 1px solid var(--rule); padding: 0 16px; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--paper); background: var(--ink); cursor: pointer; white-space: nowrap; transition: opacity .15s; }
+  .url-fetch-btn:hover { opacity: .8; }
+  .url-fetch-btn:disabled { opacity: .4; cursor: not-allowed; }
 
-  /* ─── STATUS / ERROR ──────────────────────────────────────────── */
-  .status-bar {
-    display: none;
-    margin-top: 16px;
-    padding: 14px 18px;
-    border-left: 3px solid var(--signal);
-    background: var(--signal-dim);
-    font-family: var(--mono);
-    font-size: 11px;
-    color: #7a2510;
-    letter-spacing: 0.05em;
-    line-height: 1.8;
-  }
+  /* DROP ZONE (compact) */
+  .drop-zone-compact { border: 1px dashed var(--rule); border-radius: 2px; padding: 28px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; position: relative; margin-bottom: 8px; }
+  .drop-zone-compact:hover, .drop-zone-compact.drag-over { border-color: var(--signal); background: var(--signal-dim); }
+  .drop-zone-compact input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .dz-glyph { font-family: var(--mono); font-size: 18px; color: var(--ghost); margin-bottom: 6px; }
+  .dz-text { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .dz-sub { font-size: 11px; color: var(--muted); }
+
+  /* EMPTY STATE */
+  .empty-state { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding-top: 48px; }
+  .empty-state.hidden { display: none; }
+  .empty-eyebrow { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .18em; text-transform: uppercase; margin-bottom: 12px; }
+  .empty-h1 { font-size: clamp(32px,4vw,48px); font-weight: 700; line-height: 1.05; letter-spacing: -.02em; margin-bottom: 14px; }
+  .empty-h1 em { font-style: normal; color: var(--signal); }
+  .empty-sub { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 380px; margin-bottom: 28px; }
+  .empty-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta-primary { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding: 12px 24px; background: var(--signal); color: #fff; border: none; border-radius: 2px; cursor: pointer; transition: opacity .15s; }
+  .cta-primary:hover { opacity: .85; }
+  .cta-secondary { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; padding: 12px 24px; background: none; color: var(--muted); border: 1px solid var(--rule); border-radius: 2px; cursor: pointer; transition: all .15s; }
+  .cta-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* RUN STRIP */
+  .run-strip { display: flex; gap: 0; border: 2px solid var(--ink); border-radius: 2px; overflow: hidden; }
+  .run-strip select { border: none; border-right: 1px solid var(--ink); padding: 0 16px; font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--paper-dim); outline: none; height: 52px; cursor: pointer; letter-spacing: .05em; }
+  .run-btn { flex: 1; padding: 0 32px; background: var(--signal); border: none; color: #fff; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; height: 52px; white-space: nowrap; transition: opacity .15s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .run-btn:hover { opacity: .88; }
+  .run-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .run-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.7); }
+  .run-btn:not(:disabled) .run-dot { animation: pulse 1.5s ease-in-out infinite; }
+
+  /* STATUS / ERROR */
+  .status-bar { display: none; margin-top: 14px; padding: 12px 16px; border-left: 3px solid var(--signal); background: var(--signal-dim); font-family: var(--mono); font-size: 11px; color: #7a2510; letter-spacing: .05em; line-height: 1.8; }
   .status-bar.visible { display: block; }
-
-  .error-bar {
-    display: none;
-    margin-top: 16px;
-    padding: 14px 18px;
-    border-left: 3px solid #dc2626;
-    background: #fee2e2;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: #991b1b;
-    letter-spacing: 0.05em;
-  }
+  .error-bar { display: none; margin-top: 14px; padding: 12px 16px; border-left: 3px solid #dc2626; background: #fee2e2; font-family: var(--mono); font-size: 11px; color: #991b1b; letter-spacing: .05em; }
   .error-bar.visible { display: block; }
 
-  /* ─── RESULTS ─────────────────────────────────────────────────── */
-  .results { display: none; margin-top: 64px; }
+  /* RESULTS */
+  .results { display: none; margin-top: 40px; }
   .results.visible { display: block; }
-
-  .brief-header {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: baseline;
-    border-bottom: 2px solid var(--ink);
-    padding-bottom: 12px;
-    margin-bottom: 32px;
-  }
-  .brief-title {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--signal);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-  .brief-meta {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-  }
-
-  /* ─── IDEA CARD ───────────────────────────────────────────────── */
-  .idea-card {
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    margin-bottom: 2px;
-    overflow: hidden;
-    background: var(--paper);
-  }
-  .idea-header {
-    display: flex;
-    align-items: stretch;
-    border-bottom: 1px solid var(--rule);
-  }
-  .idea-rank {
-    font-family: var(--mono);
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--paper);
-    background: var(--ink);
-    width: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    letter-spacing: -0.02em;
-  }
-  .idea-rank.rank-signal { background: var(--signal); }
-  .idea-rank.rank-hi     { background: #1a4731; }
-  .idea-rank.rank-mid    { background: #78350f; }
-  .idea-rank.rank-lo     { background: #450a0a; }
-  .idea-title-wrap {
-    flex: 1;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 8px;
-  }
-  .idea-headline {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--ink);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-  .idea-chips {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .chip {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border: 1px solid var(--rule);
-    color: var(--muted);
-    border-radius: 2px;
-  }
+  .brief-header { display: grid; grid-template-columns: 1fr auto; align-items: baseline; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 24px; }
+  .brief-title { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .18em; text-transform: uppercase; }
+  .brief-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
+  .idea-card { border: 1px solid var(--rule); border-radius: 2px; margin-bottom: 2px; overflow: hidden; background: var(--paper); }
+  .idea-header { display: flex; align-items: stretch; border-bottom: 1px solid var(--rule); }
+  .idea-rank { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--paper); background: var(--ink); width: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .rank-signal { background: var(--signal); }
+  .rank-hi { background: #1a4731; }
+  .rank-mid { background: #78350f; }
+  .rank-lo { background: #450a0a; }
+  .idea-title-wrap { flex: 1; padding: 14px 18px; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+  .idea-headline { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.2; letter-spacing: -.01em; }
+  .idea-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border: 1px solid var(--rule); color: var(--muted); border-radius: 2px; }
   .chip-platform { border-color: var(--ink); color: var(--ink); }
-  .idea-body {
-    padding: 20px 20px 20px 84px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  @media (max-width: 600px) {
-    .idea-body { grid-template-columns: 1fr; padding-left: 20px; }
-    .idea-rank { width: 48px; font-size: 18px; }
-  }
-  .idea-field {}
-  .idea-field-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  .idea-field-text {
-    font-size: 13px;
-    color: var(--ink);
-    line-height: 1.65;
-  }
-  .idea-signals {
-    grid-column: 1 / -1;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--ghost);
-    letter-spacing: 0.04em;
-    padding-top: 14px;
-    border-top: 1px solid var(--rule);
-  }
-
-  /* ─── SOURCE LOG ──────────────────────────────────────────────── */
-  .source-log-toggle {
-    margin-top: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    border: none; background: none; padding: 0;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    transition: color 0.15s;
-  }
+  .idea-body { padding: 18px 18px 18px 78px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .idea-field-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .idea-field-text { font-size: 13px; color: var(--ink); line-height: 1.6; }
+  .idea-signals { grid-column: 1/-1; font-family: var(--mono); font-size: 10px; color: var(--ghost); letter-spacing: .04em; padding-top: 12px; border-top: 1px solid var(--rule); }
+  .source-log-toggle { margin-top: 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: none; background: none; padding: 0; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; transition: color .15s; }
   .source-log-toggle:hover { color: var(--ink); }
-  .source-log-toggle::before {
-    content: '';
-    flex: none;
-    width: 8px; height: 8px;
-    border-right: 1.5px solid currentColor;
-    border-bottom: 1.5px solid currentColor;
-    transform: rotate(-45deg);
-    transition: transform 0.2s;
-    margin-top: -3px;
-  }
-  .source-log-toggle.open::before { transform: rotate(45deg); margin-top: -1px; }
-  .source-log {
-    display: none;
-    margin-top: 12px;
-    border: 1px solid var(--rule);
-    padding: 16px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    line-height: 1.8;
-    white-space: pre-wrap;
-    max-height: 240px;
-    overflow-y: auto;
-    background: var(--paper-dim);
-    letter-spacing: 0.03em;
-  }
+  .source-log-toggle::before { content: ''; flex: none; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .2s; margin-top: -2px; }
+  .source-log-toggle.open::before { transform: rotate(45deg); margin-top: 0; }
+  .source-log { display: none; margin-top: 10px; border: 1px solid var(--rule); padding: 14px; font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.8; white-space: pre-wrap; max-height: 220px; overflow-y: auto; background: var(--paper-dim); }
   .source-log.visible { display: block; }
+
+  @media(max-width:700px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--rule); }
+    .main { padding: 24px 20px 60px; }
+    .idea-body { grid-template-columns: 1fr; padding-left: 18px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- MASTHEAD -->
 <header class="masthead">
   <div class="masthead-left">
     <div class="live-dot"></div>
     <span class="wordmark">Scout</span>
   </div>
-  <div class="masthead-center">
-    <span class="dateline" id="dateline"></span>
-  </div>
+  <div class="masthead-center"><span class="dateline" id="dateline"></span></div>
   <div class="masthead-right">
     <span class="key-label">API Key</span>
     <input type="password" class="key-input" id="apiKey" placeholder="sk-ant-api03-..." />
   </div>
 </header>
 
-<main class="page">
+<div class="shell">
 
-  <!-- HEADLINE -->
-  <div class="headline-block">
-    <div>
-      <div class="headline-eyebrow">Overnight signal intelligence</div>
-      <h1 class="headline-h1">Your brand docs.<br><em>Tomorrow's</em> ideas.</h1>
-      <p class="headline-sub">Upload your brand book and campaign history. Scout reads everything and generates ideas grounded in what's moving right now.</p>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-label">Brands</span>
+      <button class="new-brand-btn" onclick="newBrand()">+ New</button>
     </div>
-    <a class="demo-link" onclick="loadDemo()">Try Ring Pop demo →</a>
-  </div>
+    <div class="brand-list" id="brandList"></div>
+    <div class="sidebar-empty" id="sidebarEmpty">No brands yet.<br>Click + New to add one.</div>
+  </aside>
 
-  <!-- UPLOAD -->
-  <div class="upload-section">
-    <div class="section-label">Brand documents</div>
+  <!-- MAIN -->
+  <main class="main">
 
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="pdfInput" accept=".pdf" multiple />
-      <div class="drop-glyph">//</div>
-      <div class="drop-title">Drop PDFs here or click to browse</div>
-      <div class="drop-sub">Brand book · Campaign history · Tone guide · Activation recaps<br><strong>Multiple files supported</strong></div>
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-eyebrow">Overnight signal intelligence</div>
+      <h1 class="empty-h1">Your brand docs.<br><em>Tomorrow's</em> ideas.</h1>
+      <p class="empty-sub">Create a brand, add your documents and URLs, and Scout generates campaign ideas grounded in what's moving right now.</p>
+      <div class="empty-actions">
+        <button class="cta-primary" onclick="newBrand()">Create your first brand</button>
+        <button class="cta-secondary" onclick="loadDemo()">Try Ring Pop demo</button>
+      </div>
     </div>
 
-    <div id="fileList"></div>
+    <!-- BRAND EDITOR -->
+    <div class="brand-editor" id="brandEditor">
 
-    <div id="addMoreWrap" style="display:none;">
-      <label class="add-more">
-        <input type="file" id="addMoreInput" accept=".pdf" multiple />
-        + Add another document
-      </label>
+      <div class="editor-head">
+        <input class="editor-name-input" id="editorName" placeholder="Brand name" oninput="markDirty()" />
+        <button class="save-chip" id="saveChip" onclick="saveBrand()">Save</button>
+      </div>
+
+      <!-- SOURCES -->
+      <div class="section-label">Documents &amp; sources</div>
+
+      <div id="sourceListWrap">
+        <div class="drop-zone-compact" id="dropZone">
+          <input type="file" id="pdfInput" accept=".pdf" multiple />
+          <div class="dz-glyph">//</div>
+          <div class="dz-text">Drop PDFs here or click to browse</div>
+          <div class="dz-sub">Brand book · Campaign history · Tone guide · Activation recaps</div>
+        </div>
+      </div>
+
+      <div class="add-row">
+        <label class="add-btn">
+          <input type="file" id="addMoreInput" accept=".pdf" multiple />
+          + Add PDF
+        </label>
+        <button class="add-btn" onclick="showUrlRow()">+ Add URL</button>
+      </div>
+
+      <div class="url-row" id="urlRow" style="display:none;">
+        <input type="url" class="url-input" id="urlInput" placeholder="https://yoursite.com/brand-page" />
+        <button class="url-fetch-btn" id="urlFetchBtn" onclick="fetchUrl()">Fetch</button>
+      </div>
+
+      <!-- RUN -->
+      <div class="run-strip">
+        <select id="ideaCount">
+          <option value="3">3 ideas</option>
+          <option value="5">5 ideas</option>
+          <option value="1">1 idea</option>
+        </select>
+        <button class="run-btn" id="runBtn" onclick="runScout()">
+          <span class="run-dot"></span>
+          Run Scout
+        </button>
+      </div>
+
+      <div class="status-bar" id="statusBar"></div>
+      <div class="error-bar" id="errorBar"></div>
+
+      <!-- RESULTS -->
+      <div class="results" id="results">
+        <div class="brief-header">
+          <div class="brief-title">Scout Brief</div>
+          <div class="brief-meta" id="briefMeta"></div>
+        </div>
+        <div id="ideasContainer"></div>
+        <button class="source-log-toggle" id="logToggle" onclick="toggleLog()">Signal data</button>
+        <div class="source-log" id="sourceLog"></div>
+      </div>
+
     </div>
-  </div>
-
-  <!-- RUN STRIP -->
-  <div class="run-strip">
-    <input type="text" id="brandName" placeholder="Brand name" />
-    <select id="ideaCount">
-      <option value="3">3 ideas</option>
-      <option value="5">5 ideas</option>
-      <option value="1">1 idea</option>
-    </select>
-    <button class="run-btn" id="runBtn" onclick="runScout()">
-      <span class="run-dot"></span>
-      Run Scout
-    </button>
-  </div>
-
-  <div class="status-bar" id="statusBar"></div>
-  <div class="error-bar" id="errorBar"></div>
-
-  <!-- RESULTS -->
-  <div class="results" id="results">
-    <div class="brief-header">
-      <div class="brief-title">Scout Brief</div>
-      <div class="brief-meta" id="briefMeta"></div>
-    </div>
-    <div id="ideasContainer"></div>
-
-    <button class="source-log-toggle" id="logToggle" onclick="toggleLog()">Signal data</button>
-    <div class="source-log" id="sourceLog"></div>
-  </div>
-
-</main>
+  </main>
+</div>
 
 <script type="module">
 // ── dateline
 document.getElementById('dateline').textContent =
-  new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
 // ── PDF.js
-const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-let pdfjs = null;
+const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+let pdfjsLib = null;
 async function getPdfJs() {
-  if (pdfjs) return pdfjs;
-  const m = await import(PDFJS);
+  if (pdfjsLib) return pdfjsLib;
+  const m = await import(PDFJS_URL);
   m.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
-  pdfjs = m; return m;
+  pdfjsLib = m; return m;
 }
 async function readPdf(file) {
   const lib = await getPdfJs();
@@ -680,103 +303,224 @@ async function readPdf(file) {
   return out.trim();
 }
 
-// ── file store
-const docs = [];
+// ── STORAGE
+const STORE_KEY = 'scout_brands';
+function loadStore() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch { return {}; }
+}
+function saveStore(store) { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
 
-function fmt(b) {
-  return b < 1048576 ? (b/1024).toFixed(0)+' KB' : (b/1048576).toFixed(1)+' MB';
+// ── STATE
+let brands = loadStore();   // { id: { id, name, sources: [{type,name,text}] } }
+let activeBrandId = null;
+let dirty = false;
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ── SIDEBAR
+function renderSidebar() {
+  const list = document.getElementById('brandList');
+  const empty = document.getElementById('sidebarEmpty');
+  const ids = Object.keys(brands);
+  empty.style.display = ids.length ? 'none' : 'block';
+  list.innerHTML = ids.map(id => {
+    const b = brands[id];
+    const srcCount = b.sources ? b.sources.length : 0;
+    return `<div class="brand-item${activeBrandId===id?' active':''}" onclick="selectBrand('${id}')">
+      <div>
+        <div class="brand-item-name">${esc(b.name||'Untitled')}</div>
+        <div class="brand-item-meta">${srcCount} source${srcCount!==1?'s':''}</div>
+      </div>
+      <button class="brand-item-del" onclick="deleteBrand(event,'${id}')">×</button>
+    </div>`;
+  }).join('');
 }
 
-function renderFiles() {
-  const list = document.getElementById('fileList');
-  const addWrap = document.getElementById('addMoreWrap');
+// ── SELECT / NEW / DELETE BRAND
+window.selectBrand = function(id) {
+  activeBrandId = id;
+  dirty = false;
+  renderSidebar();
+  renderEditor();
+};
+
+window.newBrand = function() {
+  const id = genId();
+  brands[id] = { id, name: '', sources: [] };
+  saveStore(brands);
+  activeBrandId = id;
+  dirty = true;
+  renderSidebar();
+  renderEditor();
+  setTimeout(() => document.getElementById('editorName').focus(), 50);
+};
+
+window.deleteBrand = function(e, id) {
+  e.stopPropagation();
+  if (!confirm(`Delete ${brands[id]?.name || 'this brand'}?`)) return;
+  delete brands[id];
+  saveStore(brands);
+  if (activeBrandId === id) { activeBrandId = null; }
+  renderSidebar();
+  renderEditor();
+};
+
+// ── EDITOR
+function renderEditor() {
+  const editor = document.getElementById('brandEditor');
+  const empty  = document.getElementById('emptyState');
+  if (!activeBrandId || !brands[activeBrandId]) {
+    editor.classList.remove('visible'); empty.classList.remove('hidden'); return;
+  }
+  empty.classList.add('hidden'); editor.classList.add('visible');
+  const b = brands[activeBrandId];
+  document.getElementById('editorName').value = b.name || '';
+  document.getElementById('results').classList.remove('visible');
+  renderSources();
+  updateSaveChip(false);
+}
+
+function renderSources() {
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  const sources = b.sources || [];
+  const wrap = document.getElementById('sourceListWrap');
   const dz = document.getElementById('dropZone');
-  if (!docs.length) {
-    list.innerHTML = ''; addWrap.style.display = 'none'; dz.style.display = ''; return;
+
+  if (!sources.length) {
+    dz.style.display = '';
+    const existing = wrap.querySelector('.source-list');
+    if (existing) existing.remove();
+    return;
   }
-  dz.style.display = 'none'; addWrap.style.display = 'block';
-  list.innerHTML = `<div class="file-list">${docs.map((d,i) => `
-    <div class="file-row">
-      <span class="file-mono">${esc(d.name)}</span>
-      <span class="file-chars">${d.status==='done' ? d.text.length.toLocaleString()+' chars' : fmt(d.size)}</span>
-      <span class="file-badge ${d.status==='reading'?'badge-reading':d.status==='done'?'badge-done':'badge-error'}">
-        ${d.status==='reading'?'reading…':d.status==='done'?'ready':'error'}
+  dz.style.display = 'none';
+  let sl = wrap.querySelector('.source-list');
+  if (!sl) { sl = document.createElement('div'); sl.className = 'source-list'; wrap.appendChild(sl); }
+  sl.innerHTML = sources.map((s,i) => `
+    <div class="source-row">
+      <span class="source-icon">${s.type==='url'?'🌐':'📄'}</span>
+      <span class="source-name">${esc(s.name)}</span>
+      <span class="source-badge ${s.status==='reading'?'badge-reading':s.status==='done'?'badge-done':'badge-error'}">
+        ${s.status==='reading'?'reading…':s.status==='done'?s.text.length.toLocaleString()+' chars':'error'}
       </span>
-      <button class="file-del" onclick="removeDoc(${i})">×</button>
-    </div>`).join('')}</div>`;
+      <button class="source-del" onclick="removeSource(${i})">×</button>
+    </div>`).join('');
 }
 
-window.removeDoc = i => { docs.splice(i,1); renderFiles(); };
+window.removeSource = function(i) {
+  if (!activeBrandId) return;
+  brands[activeBrandId].sources.splice(i,1);
+  saveStore(brands);
+  renderSources();
+  renderSidebar();
+};
 
-async function addFiles(fl) {
-  for (const f of fl) {
-    if (!f.name.endsWith('.pdf')) continue;
-    const d = { name: f.name, size: f.size, status: 'reading', text: '' };
-    docs.push(d); renderFiles();
-    try { d.text = await readPdf(f); d.status = 'done'; }
-    catch { d.status = 'error'; }
-    renderFiles();
+// ── SAVE
+window.markDirty = function() { dirty = true; updateSaveChip(false); };
+function updateSaveChip(saved) {
+  const chip = document.getElementById('saveChip');
+  chip.textContent = saved ? 'Saved ✓' : 'Save';
+  chip.className = 'save-chip' + (saved ? ' saved' : '');
+}
+window.saveBrand = function() {
+  if (!activeBrandId) return;
+  brands[activeBrandId].name = document.getElementById('editorName').value.trim() || 'Untitled';
+  saveStore(brands);
+  dirty = false;
+  updateSaveChip(true);
+  renderSidebar();
+  setTimeout(() => updateSaveChip(false), 2000);
+};
+
+// ── ADD PDF
+async function addPdfs(files) {
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  for (const file of files) {
+    if (!file.name.endsWith('.pdf')) continue;
+    const src = { type: 'pdf', name: file.name, status: 'reading', text: '' };
+    b.sources.push(src);
+    renderSources(); renderSidebar();
+    try { src.text = await readPdf(file); src.status = 'done'; }
+    catch { src.status = 'error'; }
+    saveStore(brands);
+    renderSources(); renderSidebar();
   }
 }
+document.getElementById('pdfInput').addEventListener('change', e => addPdfs(e.target.files));
+document.getElementById('addMoreInput').addEventListener('change', e => addPdfs(e.target.files));
 
-document.getElementById('pdfInput').addEventListener('change', e => addFiles(e.target.files));
-document.getElementById('addMoreInput').addEventListener('change', e => addFiles(e.target.files));
-
+// drag-drop
 const dz = document.getElementById('dropZone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); addFiles(e.dataTransfer.files); });
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); addPdfs(e.dataTransfer.files); });
 
-// ── demo
-window.loadDemo = function() {
-  document.getElementById('brandName').value = 'Ring Pop';
-  docs.length = 0;
-  docs.push({ name: 'ring-pop-brand-book.pdf', size: 0, status: 'done', text: `RING POP BRAND DOCUMENT
-
-Brand: Ring Pop | Owner: Bazooka Candy Brands
-
-BRAND STORY
-Ring Pop launched in 1979. It is a lollipop worn on the finger like a ring — candy as jewelry. It became a defining 90s and Y2K cultural artifact, appearing in music videos, worn by celebrities. Today Ring Pop is experiencing a Gen Z nostalgia revival.
-
-TARGET AUDIENCE
-Primary: Gen Z (16–24) — social media natives drawn to Y2K nostalgia. They discover products through TikTok and peer culture.
-Secondary: Millennials (25–35) with genuine childhood nostalgia.
-
-TONE & VOICE
-Playful. Bold. Irreverent. Never corporate. Think candy counter energy meets internet culture.
-
-BRAND PILLARS
-- Wearable candy: the ring format is the product's superpower
-- Nostalgia: authentic 90s/Y2K equity
-- Fun without apology: proudly just fun
-- Shareability: every activation should be photographable and shareable
-
-PAST ACTIVATIONS
-- Giant Ring Pop installations at events
-- Celebrity gifting to influencers and musicians
-- TikTok creator seeding — nostalgia content
-- Collabs with fashion brands around Y2K moments
-
-DO LIST
-Nostalgia, Y2K aesthetics, bold color, pop culture collabs, Gen Z humor, wearable candy concept, viral/shareable activations, unexpected brand pairings.
-
-DON'T LIST
-Health messaging, sophisticated/luxury tone, corporate language, adult positioning.` });
-  renderFiles();
+// ── URL FETCH
+window.showUrlRow = function() {
+  const r = document.getElementById('urlRow');
+  r.style.display = r.style.display === 'none' ? '' : 'none';
+  if (r.style.display !== 'none') document.getElementById('urlInput').focus();
 };
 
-// ── signals
+window.fetchUrl = async function() {
+  if (!activeBrandId) return;
+  const urlVal = document.getElementById('urlInput').value.trim();
+  if (!urlVal) return;
+  const btn = document.getElementById('urlFetchBtn');
+  btn.disabled = true; btn.textContent = 'Fetching…';
+  const b = brands[activeBrandId];
+  const src = { type: 'url', name: urlVal, status: 'reading', text: '' };
+  b.sources.push(src);
+  renderSources(); renderSidebar();
+  try {
+    // Jina Reader converts any URL to clean markdown/text
+    const res = await fetch(`https://r.jina.ai/${urlVal}`, {
+      headers: { 'Accept': 'text/plain', 'X-No-Cache': 'true' }
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    src.text = (await res.text()).slice(0, 12000);
+    src.status = 'done';
+    document.getElementById('urlInput').value = '';
+    document.getElementById('urlRow').style.display = 'none';
+  } catch(e) {
+    src.status = 'error';
+    src.name = urlVal + ' (failed: ' + e.message + ')';
+  }
+  saveStore(brands); renderSources(); renderSidebar();
+  btn.disabled = false; btn.textContent = 'Fetch';
+};
+
+// also allow Enter in URL input
+document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key==='Enter') fetchUrl(); });
+
+// ── DEMO
+window.loadDemo = function() {
+  const id = genId();
+  brands[id] = {
+    id, name: 'Ring Pop',
+    sources: [{
+      type: 'pdf', name: 'ring-pop-brand-book.pdf', status: 'done',
+      text: `RING POP BRAND DOCUMENT\n\nBrand: Ring Pop | Owner: Bazooka Candy Brands\n\nBRAND STORY\nRing Pop launched in 1979. It is a lollipop worn on the finger like a ring — candy as jewelry. It became a defining 90s and Y2K cultural artifact, appearing in music videos, worn by celebrities. Today Ring Pop is experiencing a Gen Z nostalgia revival.\n\nTARGET AUDIENCE\nPrimary: Gen Z (16–24) — social media natives drawn to Y2K nostalgia. They discover products through TikTok and peer culture.\nSecondary: Millennials (25–35) with genuine childhood nostalgia.\n\nTONE & VOICE\nPlayful. Bold. Irreverent. Never corporate. Think candy counter energy meets internet culture.\n\nBRAND PILLARS\n- Wearable candy: the ring format is the product's superpower\n- Nostalgia: authentic 90s/Y2K equity\n- Fun without apology: proudly just fun\n- Shareability: every activation should be photographable and shareable\n\nPAST ACTIVATIONS\n- Giant Ring Pop installations at events\n- Celebrity gifting to influencers and musicians\n- TikTok creator seeding — nostalgia content\n- Collabs with fashion brands around Y2K moments\n\nDO LIST\nNostalgia, Y2K aesthetics, bold color, pop culture collabs, Gen Z humor, wearable candy concept, viral activations.\n\nDON'T LIST\nHealth messaging, sophisticated/luxury tone, corporate language, adult positioning.`
+    }]
+  };
+  saveStore(brands);
+  activeBrandId = id;
+  renderSidebar(); renderEditor();
+};
+
+// ── SIGNALS
 function signals(brand) {
   return `LIVE CULTURAL SIGNALS — ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
 
 Reddit (r/nostalgia, r/GenZ, r/90smovies, r/cassetteculture)
-- "Why Gen Z Is Reviving 90s Fashion and Pop Culture" (r/Feedpulp) — 90s revival accelerating; "vintage fashion, iconic music, and retro pop culture are making a huge comeback"
-- "Why flipping is killing the culture" 266 upvotes — anti-clout backlash: "Nothing can be fun; all must be hustle." Authenticity and fun-for-fun's-sake is the counter-cultural move.
-- Rush Hour (1998) trigger-warning controversy viral (461 comments) — audience defending unfiltered 90s culture
+- "Why Gen Z Is Reviving 90s Fashion and Pop Culture" — 90s revival accelerating; "vintage fashion, iconic music, and retro pop culture are making a huge comeback"
+- "Why flipping is killing the culture" 266 upvotes — anti-clout backlash: "Nothing can be fun; all must be hustle." Authenticity is the counter-cultural move.
+- Rush Hour (1998) trigger-warning controversy viral (461 comments) — audience fiercely defending unfiltered 90s culture
 
 Hacker News
 - Oura Ring 5 launch covered twice this week — smart ring category mainstream; ring form factor top of mind across tech AND fashion simultaneously
-- "40% smaller, more like a regular ring" — wearable-as-jewelry now the positioning in premium tech
+- "40% smaller, more like a regular ring" — wearable-as-jewelry positioning gaining traction in premium tech
 
 TikTok / Social
 - #Y2Kaesthetic trending — 90s candy visuals driving heavy engagement
@@ -784,8 +528,7 @@ TikTok / Social
 - Anti-luxury / authenticity content going viral ("just let things be fun again")
 
 Cultural Macro
-- Wearable tech exploding simultaneously: Apple Watch Ultra, Oura Ring 5, Samsung Galaxy Ring
-- Ring Pop predates all of them by 45 years — the original wearable
+- Wearable tech exploding: Apple Watch Ultra, Oura Ring 5, Samsung Galaxy Ring all live simultaneously
 - Y2K aesthetic running through fashion, music, beauty, and tech at once
 - Gen Z discretionary spend on nostalgic products +34% YoY
 - Anti-optimization sentiment rising: pushback against wellness and productivity content
@@ -793,7 +536,7 @@ Cultural Macro
 Brand: ${brand}`;
 }
 
-// ── status helpers
+// ── STATUS
 const statusBar = document.getElementById('statusBar');
 const errorBar  = document.getElementById('errorBar');
 function setStatus(m) { statusBar.innerHTML = m; statusBar.classList.add('visible'); }
@@ -801,102 +544,81 @@ function clearStatus() { statusBar.classList.remove('visible'); }
 function setError(m)  { errorBar.textContent = m; errorBar.classList.add('visible'); }
 function clearError() { errorBar.classList.remove('visible'); }
 
-// ── run
+// ── RUN
 window.runScout = async function() {
-  const brand    = document.getElementById('brandName').value.trim();
-  const apiKey   = document.getElementById('apiKey').value.trim();
-  const count    = document.getElementById('ideaCount').value;
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const count  = document.getElementById('ideaCount').value;
   clearError();
   document.getElementById('results').classList.remove('visible');
 
-  if (!brand)  { setError('Enter a brand name.'); return; }
+  if (!b.name) { setError('Give this brand a name first.'); return; }
   if (!apiKey) { setError('Enter your Anthropic API key (top right).'); return; }
-
-  const ready = docs.filter(d => d.status === 'done' && d.text);
-  if (!ready.length) { setError('Upload at least one brand document, or try the Ring Pop demo.'); return; }
+  const ready = (b.sources||[]).filter(s => s.status==='done' && s.text);
+  if (!ready.length) { setError('Add at least one document or URL first.'); return; }
 
   const btn = document.getElementById('runBtn');
   btn.disabled = true;
 
-  const sig = signals(brand);
+  const sig = signals(b.name);
   document.getElementById('sourceLog').textContent = sig;
 
-  const combined = ready.map((d,i) =>
-    `--- Document ${i+1}: ${d.name} ---\n${d.text.slice(0, 6000)}`).join('\n\n');
+  const combined = ready.map((s,i) =>
+    `--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,6000)}`).join('\n\n');
 
   const prompt = `You are Scout, an autonomous marketing intelligence system.
 
-You have been given the following brand documents for ${brand}:
+You have been given the following brand sources for ${b.name}:
 
 ${combined}
 
-Read all documents carefully. Extract and understand: target audience, tone & voice, brand history, what has worked in past campaigns, what the brand stands for and avoids.
+Read all sources carefully. Extract and understand: target audience, tone & voice, brand history, past campaign learnings, what the brand stands for and avoids.
 
 Then, using your brand understanding alongside these live cultural signals:
 
 ${sig}
 
-Generate exactly ${count} ranked marketing campaign ideas that intersect what is trending RIGHT NOW with what is on-brand for ${brand}. Every idea must be grounded in specific signals from the data above.
+Generate exactly ${count} ranked marketing campaign ideas that intersect what is trending RIGHT NOW with what is on-brand for ${b.name}. Every idea must be grounded in specific signals from the data above.
 
-Return a JSON array with exactly ${count} objects. Each object:
+Return a JSON array with exactly ${count} objects:
 - headline: string (punchy campaign name, max 10 words)
 - platform: string (e.g. "TikTok", "Instagram + OOH")
 - format: string (e.g. "3-part video series", "limited drop + OOH")
 - whyNow: string (1-2 sentences citing specific signal data)
-- execution: string (2-3 sentences on exactly how to execute)
+- execution: string (2-3 sentences on how to execute)
 - score: number (1-10, breakthrough potential)
 - sourceSignals: string (comma-separated signals used)
 
 Rank by score descending. Return ONLY the JSON array, no markdown.`;
 
   try {
-    setStatus('Scanning signals · Synthesizing brand intelligence · Generating ideas');
-
+    setStatus('Scanning signals · Reading brand sources · Generating ideas');
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
-        messages: [{ role:'user', content: prompt }],
-      }),
+      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:4096, messages:[{role:'user',content:prompt}] }),
     });
-
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || `${res.status}`); }
-
+    if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||`${res.status}`); }
     const data = await res.json();
     const raw  = data.content[0].text.trim();
     let ideas;
     try { ideas = JSON.parse(raw); }
-    catch { const m = raw.match(/\[[\s\S]*\]/); ideas = m ? JSON.parse(m[0]) : null; }
+    catch { const m=raw.match(/\[[\s\S]*\]/); ideas=m?JSON.parse(m[0]):null; }
     if (!ideas) throw new Error('Could not parse response.');
-
-    renderIdeas(ideas, brand);
+    renderIdeas(ideas, b.name);
     clearStatus();
   } catch(e) {
-    clearStatus(); setError('Error: ' + e.message);
-  } finally {
-    btn.disabled = false;
-  }
+    clearStatus(); setError('Error: '+e.message);
+  } finally { btn.disabled=false; }
 };
 
-function rankClass(score) {
-  if (score >= 9) return 'rank-signal';
-  if (score >= 7) return 'rank-hi';
-  if (score >= 5) return 'rank-mid';
-  return 'rank-lo';
-}
+function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid':'rank-lo'; }
 
 function renderIdeas(ideas, brand) {
   const now = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   document.getElementById('briefMeta').textContent = `${ideas.length} ideas · ${brand} · ${now}`;
-
-  document.getElementById('ideasContainer').innerHTML = ideas.map(idea => `
+  document.getElementById('ideasContainer').innerHTML = ideas.map(idea=>`
     <div class="idea-card">
       <div class="idea-header">
         <div class="idea-rank ${rankClass(idea.score)}">${idea.score}</div>
@@ -909,32 +631,25 @@ function renderIdeas(ideas, brand) {
         </div>
       </div>
       <div class="idea-body">
-        <div class="idea-field">
-          <div class="idea-field-label">Why now</div>
-          <div class="idea-field-text">${esc(idea.whyNow)}</div>
-        </div>
-        <div class="idea-field">
-          <div class="idea-field-label">Execution</div>
-          <div class="idea-field-text">${esc(idea.execution)}</div>
-        </div>
-        ${idea.sourceSignals ? `<div class="idea-signals">Signals · ${esc(idea.sourceSignals)}</div>` : ''}
+        <div class="idea-field"><div class="idea-field-label">Why now</div><div class="idea-field-text">${esc(idea.whyNow)}</div></div>
+        <div class="idea-field"><div class="idea-field-label">Execution</div><div class="idea-field-text">${esc(idea.execution)}</div></div>
+        ${idea.sourceSignals?`<div class="idea-signals">Signals · ${esc(idea.sourceSignals)}</div>`:''}
       </div>
     </div>`).join('');
-
   document.getElementById('results').classList.add('visible');
-  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 window.toggleLog = function() {
-  const log = document.getElementById('sourceLog');
-  const btn = document.getElementById('logToggle');
-  log.classList.toggle('visible');
-  btn.classList.toggle('open');
+  document.getElementById('sourceLog').classList.toggle('visible');
+  document.getElementById('logToggle').classList.toggle('open');
 };
+
+// ── INIT
+renderSidebar();
+renderEditor();
 </script>
 </body>
 </html>
