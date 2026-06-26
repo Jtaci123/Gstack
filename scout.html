@@ -169,6 +169,14 @@
   .rigor-cliche  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
   .rigor-note { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
   .rigor-score { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 12px; }
+  .commerce-bar { grid-column: 1/-1; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--rule); margin-top: 4px; background: #f8f7ff; }
+  .commerce-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .commerce-gold     { background: #fef9c3; color: #713f12; border: 1px solid #fde047; }
+  .commerce-silver   { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+  .commerce-bronze   { background: #fff7ed; color: #7c2d12; border: 1px solid #fed7aa; }
+  .commerce-niche    { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+  .commerce-note { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
+  .commerce-score { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 12px; }
   .idea-actions { grid-column: 1/-1; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; gap: 12px; }
   .feedback-btns { display: flex; gap: 6px; }
   .btn-feedback { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--rule); background: none; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all .15s; opacity: .5; }
@@ -624,7 +632,7 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
     );
 
     // ── PHASE 2: Cultural Scan
-    setStatus('<span class="pulse-dot"></span> Phase 2 of 3 · Scanning cultural signals…');
+    setStatus('<span class="pulse-dot"></span> Phase 2 of 5 · Scanning cultural signals…');
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const culturalScan = await claudeCall(
       apiKey,
@@ -651,8 +659,31 @@ Be specific. Name real events, real trends, real cultural figures. This is the r
       2000
     );
 
+    // ── PHASE 2.5: Award Intelligence Scan
+    setStatus('<span class="pulse-dot"></span> Phase 3 of 5 · Scanning award-winning intelligence…');
+    const awardIntel = await claudeCall(
+      apiKey,
+      `You are a senior creative strategist and awards judge with deep knowledge of Cannes Lions, D&AD, Effie Awards, One Show, and Clio Awards. You have judged and studied what makes campaigns win at the highest levels.`,
+      `Provide a synthesis of the most important award-winning campaign archetypes and patterns from the last 12-18 months (Cannes Lions 2025 and 2026, D&AD 2025, Effie 2025). Focus on:
+
+1. GRAND PRIX ARCHETYPES: What types of ideas are winning Grand Prix right now? What structural patterns do they share? (e.g. "product as platform for social change", "brand utility that solves a real problem", "cultural tension made commerce")
+
+2. CANNES 2026 COMMERCE WINNERS: What's winning the Creative Commerce category and why? What does the jury value? Include the principle from jury president Phil Camarota: "The best creative commerce doesn't just deliver value — it completely reimagines what value can mean between a brand and a person."
+
+3. WHAT'S LOSING: What kind of ideas are being rejected by juries right now? What clichés and conventions are they penalizing?
+
+4. EMERGING AWARD CRITERIA: What new dimensions are juries scoring? (e.g. cultural impact, commerce integration, measurable business results, long-term brand building)
+
+5. COMMERCIAL PROOF POINTS: What do winning campaigns prove about ROI, sales lift, or business transformation? What makes a campaign both creatively brave AND commercially effective?
+
+6. THIS YEAR'S NORTH STAR: Based on 2025-2026 award trends, what is the single most valued creative territory right now? What does a "Cannes 2026 idea" look and feel like?
+
+Be specific. Name actual campaigns and what made them win. This will be used to pressure-test creative ideas for both creative excellence AND commercial potential.`,
+      1500
+    );
+
     // ── PHASE 3: Idea Generation (Barry-informed)
-    setStatus('<span class="pulse-dot"></span> Phase 3 of 4 · Generating campaign ideas…');
+    setStatus('<span class="pulse-dot"></span> Phase 4 of 5 · Generating campaign ideas…');
     const BARRY_PRINCIPLES = `You generate ideas grounded in the principles of The Advertising Concept Book by Pete Barry:
 - Single-minded propositions only. One idea. Not a list dressed as an idea.
 - Human insight over demographics. Real tension, not audience description.
@@ -673,6 +704,9 @@ ${brandIntel}
 ═══ LIVE CULTURAL SCAN ═══
 ${culturalScan}${buildFeedbackPrompt()}
 
+═══ AWARD-WINNING INTELLIGENCE ═══
+${awardIntel}
+
 ═══ GENERATION RULES ═══
 Every idea must:
 - Start from a REAL human tension — not a demographic, not a product feature. A genuine tension people feel.
@@ -681,6 +715,8 @@ Every idea must:
 - Be execution-independent: the idea works across channels, not just one format
 - Avoid category conventions — what does every brand in this space do? Do the opposite.
 - Think beyond ads: stunts, partnerships, product innovations, cultural interventions, earned media, drops, experiences
+- Have a clear commerce angle: how does it drive sales, brand equity, or measurable business results?
+- Ask: would this win a Cannes Creative Commerce Lion? Would it pass an Effie jury?
 
 Score 1–10 for breakthrough potential. Be brutal — a 10 is genuinely Cannes-worthy and most ideas aren't.
 
@@ -707,7 +743,7 @@ Rank by score descending. Return ONLY the JSON array, no markdown.`,
     if (!ideas) throw new Error('Could not parse ideas from response.');
 
     // ── PHASE 4: Concept Rigor Evaluation (Barry Diagnosis)
-    setStatus('<span class="pulse-dot"></span> Phase 4 of 4 · Running concept rigor engine…');
+    setStatus('<span class="pulse-dot"></span> Phase 4 of 5 · Running concept rigor engine…');
     const RIGOR_SYSTEM = `You are a senior advertising concept partner grounded in The Advertising Concept Book by Pete Barry. You are not polite to weak thinking. You spar, build, and compress. You diagnose ideas ruthlessly and honestly using these labels:
 - Strong Backbone: real human tension, execution-independent, reducible, original
 - Promising but Soft: good instinct, insight not yet sharp enough, needs reduction
@@ -754,8 +790,52 @@ Return ONLY the JSON array, no markdown.`,
       });
     }
 
+    // ── PHASE 5: Commerce Lens Evaluation
+    setStatus('<span class="pulse-dot"></span> Phase 5 of 5 · Running commerce lens…');
+    const ideasForCommerce = ideas.map((idea, i) => `[${i}] "${idea.headline}" — Handle: "${idea.handle||''}" — Tension: "${idea.humanTension||''}" — Format: "${idea.format}" — Execution: "${idea.execution}"`).join('\n');
+
+    const commerceRaw = await claudeCall(
+      apiKey,
+      `You are a Cannes Lions Creative Commerce juror and Effie Awards judge. You evaluate ideas for their commercial potential — not just creative bravery, but whether the idea can drive measurable business results, earn media, generate revenue, or build long-term brand equity. You think like a CMO who has to defend spend to a CFO AND win a Grand Prix.`,
+      `Evaluate the following ${ideas.length} campaign ideas for ${b.name} through a COMMERCE LENS. Use the Cannes Lions Creative Commerce jury principle: "The best creative commerce doesn't just deliver value — it completely reimagines what value can mean between a brand and a person."
+
+${ideasForCommerce}
+
+For each idea, score its commercial potential using these labels:
+- Award Contender: has a clear commerce mechanic, measurable business impact, and creative bravery — jury-worthy at Cannes or Effie
+- Solid Performer: strong commercial logic, likely to drive results, may lack the creative surprise to win awards but will work
+- Needs a Hook: interesting idea but the commerce mechanic is unclear, underdeveloped, or relies on vague "brand equity" claims
+- Awareness Play: primarily a brand-building play with weak direct commerce mechanics — harder to prove ROI
+
+Return a JSON array with exactly ${ideas.length} objects in the same order:
+{
+  "index": 0,
+  "commerceLabel": "one of: Award Contender | Solid Performer | Needs a Hook | Awareness Play",
+  "commerceNote": "1-2 sharp sentences on the commercial strength or gap, and what would make it more commercially powerful",
+  "commerceScore": 8
+}
+
+commerceScore is 1–10 for commercial potential (business impact + measurability + scalability).
+Return ONLY the JSON array, no markdown.`,
+      4096
+    );
+
+    let commerceResults;
+    try { commerceResults = JSON.parse(commerceRaw); }
+    catch { const m = commerceRaw.match(/\[[\s\S]*\]/); commerceResults = m ? JSON.parse(m[0]) : null; }
+
+    if (commerceResults) {
+      commerceResults.forEach(r => {
+        if (ideas[r.index]) {
+          ideas[r.index].commerceLabel = r.commerceLabel;
+          ideas[r.index].commerceNote = r.commerceNote;
+          ideas[r.index].commerceScore = r.commerceScore;
+        }
+      });
+    }
+
     document.getElementById('sourceLog').textContent =
-      `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}`;
+      `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}\n\n═══ PHASE 2.5: AWARD INTELLIGENCE ═══\n\n${awardIntel}`;
 
     renderIdeas(ideas, b.name);
     clearStatus();
@@ -1124,6 +1204,10 @@ function renderIdeas(ideas, brand) {
       'Strong Backbone':'rigor-strong','Promising but Soft':'rigor-soft',
       'Execution-Led':'rigor-exec','Decorative':'rigor-deco','Cliché Risk':'rigor-cliche'
     }[idea.rigorLabel] || 'rigor-deco';
+    const commerceClass = {
+      'Award Contender':'commerce-gold','Solid Performer':'commerce-silver',
+      'Needs a Hook':'commerce-bronze','Awareness Play':'commerce-niche'
+    }[idea.commerceLabel] || 'commerce-niche';
     const fb = getFeedback(i);
     return `
     <div class="idea-card">
@@ -1148,6 +1232,12 @@ function renderIdeas(ideas, brand) {
           <span class="rigor-label ${labelClass}">${esc(idea.rigorLabel)}</span>
           <span class="rigor-note">${esc(idea.rigorNote||'')}</span>
           ${idea.rigorScore?`<span class="rigor-score">Concept ${idea.rigorScore}/10</span>`:''}
+        </div>`:''}
+        ${idea.commerceLabel?`
+        <div class="commerce-bar">
+          <span class="commerce-label ${commerceClass}">${esc(idea.commerceLabel)}</span>
+          <span class="commerce-note">${esc(idea.commerceNote||'')}</span>
+          ${idea.commerceScore?`<span class="commerce-score">Commerce ${idea.commerceScore}/10</span>`:''}
         </div>`:''}
         <div class="idea-actions">
           <div class="feedback-btns">
