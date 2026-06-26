@@ -48,19 +48,25 @@
   /* MAIN */
   .main { padding: 48px 48px 100px; max-width: 760px; margin: 0 auto; }
 
-  /* BRAND HEADER */
-  .brand-header { margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
-  .brand-header-name { font-size: 32px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); line-height: 1; margin-bottom: 6px; }
-  .brand-header-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; }
-
-  /* BRAND EDITOR (add brand modal) */
+  /* BRAND PAGE */
   .brand-editor { display: none; }
   .brand-editor.visible { display: block; }
-  .editor-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
-  .editor-name-input { font-size: 24px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); background: none; border: none; border-bottom: 2px solid var(--signal); outline: none; width: 100%; font-family: var(--sans); }
-  .save-chip { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 2px; background: none; color: var(--muted); cursor: pointer; transition: all .15s; }
-  .save-chip:hover { border-color: var(--signal); color: var(--signal); }
-  .save-chip.saved { border-color: #065f46; color: #065f46; background: #d1fae5; }
+
+  /* BRAND HERO */
+  .brand-hero { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 2px solid var(--ink); }
+  .brand-hero-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--signal); margin-bottom: 10px; }
+  .brand-hero-name { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -.025em; color: var(--ink); line-height: 1; margin-bottom: 10px; }
+  .brand-hero-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
+
+  /* CONTEXT BLOCK */
+  .context-block { border: 1px solid var(--rule); border-radius: 3px; margin-bottom: 32px; overflow: hidden; }
+  .context-block-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; transition: background .15s; }
+  .context-block-header:hover { background: var(--paper-dim); }
+  .context-block-title { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+  .context-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 1px solid var(--rule); border-radius: 2px; font-size: 14px; color: var(--muted); font-weight: 400; transition: all .15s; flex-shrink: 0; }
+  .context-block-note { font-family: var(--mono); font-size: 9px; color: var(--ghost); letter-spacing: .08em; }
+  .context-body { border-top: 1px solid var(--rule); padding: 20px 18px 4px; background: var(--paper-dim); }
+  .context-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
 
   /* SECTION LABEL */
   .section-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
@@ -202,40 +208,52 @@
       <p class="empty-sub">Pick a brand from the dropdown, enter your API key, and Scout scans culture and generates campaign ideas grounded in what's moving right now.</p>
     </div>
 
-    <!-- BRAND VIEW -->
+    <!-- BRAND PAGE -->
     <div class="brand-editor" id="brandEditor">
 
-      <div class="brand-header">
-        <div class="brand-header-name" id="brandHeaderName"></div>
-        <div class="brand-header-meta" id="brandHeaderMeta"></div>
+      <!-- BRAND HERO -->
+      <div class="brand-hero">
+        <div class="brand-hero-eyebrow">Brand</div>
+        <h1 class="brand-hero-name" id="brandHeaderName"></h1>
+        <div class="brand-hero-sub" id="brandHeaderMeta"></div>
       </div>
 
-      <!-- OPTIONAL EXTRA CONTEXT -->
-      <details style="margin-bottom:28px;">
-        <summary style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);display:inline-block;transition:transform .2s;margin-top:-2px;" id="extraArrow"></span>
-          Extra context <span style="opacity:.5;font-size:8px;text-transform:none;letter-spacing:0">&nbsp;— optional PDFs or URLs to enrich brand intelligence</span>
-        </summary>
-        <div id="sourceListWrap">
-          <div class="drop-zone-compact" id="dropZone">
-            <input type="file" id="pdfInput" accept=".pdf" multiple />
-            <div class="dz-glyph">//</div>
-            <div class="dz-text">Drop PDFs here or click to browse</div>
-            <div class="dz-sub">Brand book · Campaign history · Tone guide · Activation recaps</div>
+      <!-- CONTEXT BLOCK -->
+      <div class="context-block">
+        <div class="context-block-header" onclick="toggleContext()">
+          <div class="context-block-title">
+            <span class="context-icon" id="contextIcon">+</span>
+            Brand Briefs &amp; Documents
+          </div>
+          <div class="context-block-note">optional — Scout works without this</div>
+        </div>
+
+        <div class="context-body" id="contextBody" style="display:none;">
+          <p class="context-desc">Add brand books, campaign history, tone guides, briefs, or any URL. Scout reads everything and uses it to sharpen its brand intelligence in Phase 1.</p>
+
+          <div id="sourceListWrap">
+            <div class="drop-zone-compact" id="dropZone">
+              <input type="file" id="pdfInput" accept=".pdf" multiple />
+              <div class="dz-glyph">//</div>
+              <div class="dz-text">Drop PDFs here or click to browse</div>
+              <div class="dz-sub">Brand book · Campaign history · Tone guide · Activation recaps</div>
+            </div>
+          </div>
+
+          <div class="add-row">
+            <label class="add-btn">
+              <input type="file" id="addMoreInput" accept=".pdf" multiple />
+              + Add PDF
+            </label>
+            <button class="add-btn" onclick="showUrlRow()">+ Add URL</button>
+          </div>
+
+          <div class="url-row" id="urlRow" style="display:none;">
+            <input type="url" class="url-input" id="urlInput" placeholder="https://yoursite.com/brand-page" />
+            <button class="url-fetch-btn" id="urlFetchBtn" onclick="fetchUrl()">Fetch</button>
           </div>
         </div>
-        <div class="add-row">
-          <label class="add-btn">
-            <input type="file" id="addMoreInput" accept=".pdf" multiple />
-            + Add PDF
-          </label>
-          <button class="add-btn" onclick="showUrlRow()">+ Add URL</button>
-        </div>
-        <div class="url-row" id="urlRow" style="display:none;">
-          <input type="url" class="url-input" id="urlInput" placeholder="https://yoursite.com/brand-page" />
-          <button class="url-fetch-btn" id="urlFetchBtn" onclick="fetchUrl()">Fetch</button>
-        </div>
-      </details>
+      </div>
 
       <!-- RUN -->
       <div class="run-strip">
@@ -834,6 +852,14 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 window.toggleLog = function() {
   document.getElementById('sourceLog').classList.toggle('visible');
   document.getElementById('logToggle').classList.toggle('open');
+};
+
+window.toggleContext = function() {
+  const body = document.getElementById('contextBody');
+  const icon = document.getElementById('contextIcon');
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  icon.textContent = open ? '−' : '+';
 };
 
 // ── INIT
