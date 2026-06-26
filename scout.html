@@ -473,19 +473,37 @@ window.fetchUrl = async function() {
   const src = { type: 'url', name: urlVal, status: 'reading', text: '' };
   b.sources.push(src);
   renderSources(); renderSidebar();
+  async function tryFetch(url) {
+    // Try Jina Reader v2 (more permissive endpoint)
+    const endpoints = [
+      `https://r.jina.ai/${url}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    ];
+    for (const ep of endpoints) {
+      try {
+        const res = await fetch(ep, { headers: { 'Accept': 'text/plain' } });
+        if (!res.ok) continue;
+        const body = await res.text();
+        // allorigins wraps in JSON
+        if (ep.includes('allorigins')) {
+          try { return JSON.parse(body).contents || body; } catch { return body; }
+        }
+        return body;
+      } catch { continue; }
+    }
+    throw new Error('All fetch attempts failed. Try a PDF instead, or paste the URL into a PDF and upload that.');
+  }
+
   try {
-    // Jina Reader converts any URL to clean markdown/text
-    const res = await fetch(`https://r.jina.ai/${urlVal}`, {
-      headers: { 'Accept': 'text/plain', 'X-No-Cache': 'true' }
-    });
-    if (!res.ok) throw new Error(`${res.status}`);
-    src.text = (await res.text()).slice(0, 12000);
+    const text = await tryFetch(urlVal);
+    if (!text || text.length < 50) throw new Error('Page returned empty content');
+    src.text = text.slice(0, 12000);
     src.status = 'done';
     document.getElementById('urlInput').value = '';
     document.getElementById('urlRow').style.display = 'none';
   } catch(e) {
     src.status = 'error';
-    src.name = urlVal + ' (failed: ' + e.message + ')';
+    src.name = urlVal + ' (failed — ' + e.message + ')';
   }
   saveStore(brands); renderSources(); renderSidebar();
   btn.disabled = false; btn.textContent = 'Fetch';
