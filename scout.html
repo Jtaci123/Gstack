@@ -698,128 +698,287 @@ window.open1Pager = function(i) {
   const idea = _lastIdeas[i];
   const brandName = _lastBrand;
   if (!idea) return;
-  const scoreColor = idea.score >= 9 ? '#e8441a' : idea.score >= 7 ? '#16a34a' : idea.score >= 5 ? '#b45309' : '#991b1b';
+
+  const ac = idea.score >= 9 ? '#e8441a' : idea.score >= 7 ? '#22c55e' : idea.score >= 5 ? '#f59e0b' : '#ef4444';
+  const acDim = idea.score >= 9 ? 'rgba(232,68,26,.15)' : idea.score >= 7 ? 'rgba(34,197,94,.12)' : 'rgba(245,158,11,.12)' ;
   const year = new Date().getFullYear();
+
+  // Derive image keywords from idea text for Unsplash
+  const imgKeywords = encodeURIComponent(
+    (idea.platform + ' ' + idea.format + ' ' + brandName)
+      .replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ',').slice(0, 60)
+  );
+  const imgUrl = `https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1600&q=80&fit=crop`;
+  // Use a curated Unsplash collection URL with seed for variety
+  const imgSeed = Math.abs(idea.headline.split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % 1000;
+  const heroImg = `https://picsum.photos/seed/${imgSeed}/1600/900`;
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>${idea.headline} — Scout 1-Pager</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>${idea.headline}</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    font-family: 'Space Grotesk', sans-serif;
-    background: #0c0c10;
-    color: #f5f3ee;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 24px;
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;}
+
+  /* 16:9 slide container */
+  .slide{
+    position:relative;
+    width:min(100vw, calc(100vh * 16/9));
+    height:min(100vh, calc(100vw * 9/16));
+    background:#08080d;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr;
   }
-  .page {
-    width: 100%;
-    max-width: 760px;
-    background: #0c0c10;
-    border: 1px solid #2a2a35;
-    position: relative;
-    overflow: hidden;
+
+  /* ── LEFT PANEL ── */
+  .left{
+    position:relative;
+    padding:5% 5% 4% 6%;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    z-index:2;
+    background:#08080d;
   }
-  /* Left accent bar */
-  .accent-bar {
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 6px;
-    background: ${scoreColor};
+  .left::after{
+    content:'';
+    position:absolute;
+    right:0;top:0;bottom:0;
+    width:1px;
+    background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);
   }
-  .inner { padding: 52px 52px 52px 68px; }
-  /* Header */
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
-  .brand-block {}
-  .brand-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: #6b7280; margin-bottom: 6px; }
-  .brand-name { font-size: 13px; font-weight: 600; color: #9ca3af; letter-spacing: .02em; }
-  .score-block { text-align: right; }
-  .score-num { font-size: 64px; font-weight: 800; color: ${scoreColor}; line-height: 1; letter-spacing: -.04em; }
-  .score-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4b5563; margin-top: 4px; }
-  /* Headline */
-  .headline { font-size: 38px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; color: #f5f3ee; margin-bottom: 24px; }
-  /* Chips */
-  .chips { display: flex; gap: 8px; margin-bottom: 36px; flex-wrap: wrap; }
-  .chip { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; padding: 4px 10px; border: 1px solid #374151; color: #9ca3af; }
-  .chip-platform { border-color: ${scoreColor}; color: ${scoreColor}; }
-  /* Divider */
-  .divider { border: none; border-top: 1px solid #1f2937; margin-bottom: 32px; }
-  /* Fields */
-  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; }
-  .field-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: ${scoreColor}; margin-bottom: 10px; }
-  .field-text { font-size: 14px; line-height: 1.65; color: #d1d5db; }
-  /* Signals */
-  .signals-block { border-top: 1px solid #1f2937; padding-top: 20px; }
-  .signals-label { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #4b5563; margin-bottom: 8px; }
-  .signals-text { font-family: 'Space Mono', monospace; font-size: 10px; color: #4b5563; line-height: 1.7; }
-  /* Footer */
-  .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #1f2937; }
-  .footer-scout { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: #374151; }
-  .footer-year { font-family: 'Space Mono', monospace; font-size: 9px; color: #374151; }
-  /* Corner mark */
-  .corner { position: absolute; top: 20px; right: 20px; width: 24px; height: 24px; }
-  .corner::before, .corner::after { content:''; position: absolute; background: #2a2a35; }
-  .corner::before { top: 0; right: 0; width: 1px; height: 100%; }
-  .corner::after { top: 0; right: 0; width: 100%; height: 1px; }
-  @media print {
-    body { background: #0c0c10; padding: 0; }
-    .page { border: none; max-width: 100%; }
+
+  .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
+  .brand-pill{
+    display:flex;align-items:center;gap:8px;
+    font-family:'Space Mono',monospace;
+    font-size:clamp(7px,1vw,11px);
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:#555;
   }
-  @media (max-width: 600px) {
-    .inner { padding: 36px 28px 36px 42px; }
-    .headline { font-size: 26px; }
-    .fields { grid-template-columns: 1fr; }
-    .score-num { font-size: 48px; }
+  .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
+
+  .score-badge{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(8px,1.1vw,13px);
+    letter-spacing:.12em;
+    color:${ac};
+    border:1px solid ${ac};
+    padding:3px 10px;
+    border-radius:2px;
+  }
+
+  .headline-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6% 0;}
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(7px,.9vw,10px);
+    letter-spacing:.25em;
+    text-transform:uppercase;
+    color:${ac};
+    margin-bottom:3%;
+  }
+  .headline{
+    font-size:clamp(18px,3.6vw,52px);
+    font-weight:900;
+    line-height:1.0;
+    letter-spacing:-.03em;
+    color:#f5f3ee;
+    margin-bottom:5%;
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.8vw,9px);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border:1px solid #2a2a35;
+    color:#555;
+  }
+  .chip-accent{border-color:${ac};color:${ac};}
+
+  .brief-block{border-top:1px solid #1a1a24;padding-top:4%;}
+  .brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:4%;}
+  .brief-field-label{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.75vw,8px);
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:${ac};
+    margin-bottom:5px;
+  }
+  .brief-field-text{font-size:clamp(9px,1.1vw,13px);color:#9ca3af;line-height:1.5;}
+
+  .footer-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:3%;
+    margin-top:3%;
+    border-top:1px solid #1a1a24;
+  }
+  .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#333;}
+  .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#333;}
+
+  /* ── RIGHT PANEL ── */
+  .right{
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-img{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    opacity:.55;
+    filter:saturate(.6) contrast(1.1);
+  }
+  .right-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(135deg, rgba(8,8,13,.7) 0%, rgba(8,8,13,.1) 100%);
+  }
+  .right-content{
+    position:relative;z-index:2;
+    height:100%;
+    display:flex;flex-direction:column;
+    justify-content:space-between;
+    padding:5%;
+  }
+
+  /* Mockup frames */
+  .mockup-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3%;flex:1;margin:5% 0;}
+  .mockup-frame{
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:4px;
+    background:rgba(8,8,13,.6);
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);
+    position:relative;
+    overflow:hidden;
+  }
+  .mockup-frame::before{
+    content:'';position:absolute;inset:0;
+    background:${acDim};
+  }
+  .mockup-label{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.7vw,8px);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.25);
+    text-align:center;
+    position:relative;z-index:1;
+  }
+  /* First frame larger */
+  .mockup-frame.hero-frame{
+    grid-column:1/-1;
+    min-height:35%;
+  }
+  .hero-frame-inner{
+    position:relative;z-index:1;
+    text-align:center;
+    padding:12%;
+  }
+  .hero-frame-headline{
+    font-size:clamp(11px,1.6vw,20px);
+    font-weight:800;
+    color:#f5f3ee;
+    letter-spacing:-.02em;
+    line-height:1.1;
+    margin-bottom:8px;
+  }
+  .hero-frame-sub{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.7vw,8px);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:${ac};
+  }
+
+  /* Signals strip */
+  .signals-strip{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.65vw,7.5px);
+    letter-spacing:.1em;
+    color:rgba(255,255,255,.2);
+    border-top:1px solid rgba(255,255,255,.06);
+    padding-top:3%;
+    line-height:1.7;
+  }
+
+  @media print{
+    html,body{width:297mm;height:167mm;display:block;}
+    .slide{width:297mm;height:167mm;}
   }
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="accent-bar"></div>
-  <div class="inner">
-    <div class="header">
-      <div class="brand-block">
-        <div class="brand-label">Brand</div>
-        <div class="brand-name">${brandName}</div>
-      </div>
-      <div class="score-block">
-        <div class="score-num">${idea.score}</div>
-        <div class="score-label">/ 10</div>
+<div class="slide">
+
+  <!-- LEFT: Brief -->
+  <div class="left">
+    <div class="top-bar">
+      <div class="brand-pill">${brandName}</div>
+      <div class="score-badge">${idea.score} / 10</div>
+    </div>
+
+    <div class="headline-block">
+      <div class="eyebrow">Campaign Concept</div>
+      <div class="headline">${idea.headline}</div>
+      <div class="chips">
+        <span class="chip chip-accent">${idea.platform}</span>
+        <span class="chip">${idea.format}</span>
       </div>
     </div>
-    <div class="headline">${idea.headline}</div>
-    <div class="chips">
-      <span class="chip chip-platform">${idea.platform}</span>
-      <span class="chip">${idea.format}</span>
-    </div>
-    <hr class="divider">
-    <div class="fields">
-      <div class="field">
-        <div class="field-label">Why Now</div>
-        <div class="field-text">${idea.whyNow}</div>
+
+    <div class="brief-block">
+      <div class="brief-grid">
+        <div>
+          <div class="brief-field-label">Why Now</div>
+          <div class="brief-field-text">${idea.whyNow}</div>
+        </div>
+        <div>
+          <div class="brief-field-label">Execution</div>
+          <div class="brief-field-text">${idea.execution}</div>
+        </div>
       </div>
-      <div class="field">
-        <div class="field-label">Execution</div>
-        <div class="field-text">${idea.execution}</div>
+      <div class="footer-bar">
+        <span class="footer-scout">🔭 Scout · Autonomous Intelligence</span>
+        <span class="footer-year">${year}</span>
       </div>
-    </div>
-    ${idea.sourceSignals ? `
-    <div class="signals-block">
-      <div class="signals-label">Cultural Signals</div>
-      <div class="signals-text">${idea.sourceSignals}</div>
-    </div>` : ''}
-    <div class="footer">
-      <span class="footer-scout">🔭 Scout · Autonomous Intelligence</span>
-      <span class="footer-year">${year}</span>
     </div>
   </div>
+
+  <!-- RIGHT: Visual -->
+  <div class="right">
+    <img class="hero-img" src="${heroImg}" alt="" onerror="this.style.display='none'" />
+    <div class="right-overlay"></div>
+    <div class="right-content">
+
+      <div class="mockup-grid">
+        <!-- Hero mockup frame -->
+        <div class="mockup-frame hero-frame">
+          <div class="hero-frame-inner">
+            <div class="hero-frame-headline">${idea.headline}</div>
+            <div class="hero-frame-sub">${idea.platform} · ${idea.format}</div>
+          </div>
+        </div>
+        <!-- Sub-frames: simulated phone/OOH mockups -->
+        <div class="mockup-frame">
+          <div class="mockup-label">Social post mockup</div>
+        </div>
+        <div class="mockup-frame">
+          <div class="mockup-label">OOH / activation</div>
+        </div>
+      </div>
+
+      ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${idea.sourceSignals}</div>` : ''}
+    </div>
+  </div>
+
 </div>
 </body>
 </html>`;
