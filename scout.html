@@ -690,7 +690,14 @@ Rank by score descending. Return ONLY the JSON array, no markdown, no explanatio
 
 function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid':'rank-lo'; }
 
-window.open1Pager = function(idea, brandName) {
+// Store last generated ideas so 1-pager buttons can reference by index safely
+let _lastIdeas = [];
+let _lastBrand = '';
+
+window.open1Pager = function(i) {
+  const idea = _lastIdeas[i];
+  const brandName = _lastBrand;
+  if (!idea) return;
   const scoreColor = idea.score >= 9 ? '#e8441a' : idea.score >= 7 ? '#16a34a' : idea.score >= 5 ? '#b45309' : '#991b1b';
   const year = new Date().getFullYear();
   const html = `<!DOCTYPE html>
@@ -822,9 +829,11 @@ window.open1Pager = function(idea, brandName) {
 };
 
 function renderIdeas(ideas, brand) {
+  _lastIdeas = ideas;
+  _lastBrand = brand;
   const now = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   document.getElementById('briefMeta').textContent = `${ideas.length} ideas · ${brand} · ${now}`;
-  document.getElementById('ideasContainer').innerHTML = ideas.map(idea=>`
+  document.getElementById('ideasContainer').innerHTML = ideas.map((idea, i)=>`
     <div class="idea-card">
       <div class="idea-header">
         <div class="idea-rank ${rankClass(idea.score)}">${idea.score}</div>
@@ -840,7 +849,7 @@ function renderIdeas(ideas, brand) {
         <div class="idea-field"><div class="idea-field-label">Why now</div><div class="idea-field-text">${esc(idea.whyNow)}</div></div>
         <div class="idea-field"><div class="idea-field-label">Execution</div><div class="idea-field-text">${esc(idea.execution)}</div></div>
         ${idea.sourceSignals?`<div class="idea-signals">Signals · ${esc(idea.sourceSignals)}</div>`:''}
-        <div class="idea-actions"><button class="btn-pager" onclick='open1Pager(${JSON.stringify(idea)}, ${JSON.stringify(brand)})'>Generate 1-Pager</button></div>
+        <div class="idea-actions"><button class="btn-pager" onclick="open1Pager(${i})">Generate 1-Pager</button></div>
       </div>
     </div>`).join('');
   document.getElementById('results').classList.add('visible');
