@@ -1147,7 +1147,7 @@ window.open1Pager = function(i) {
 };
 
 function getFeedback(i) {
-  const brand = brands.find(b=>b.id===activeBrandId);
+  const brand = brands[activeBrandId];
   if (!brand || !_lastIdeas[i]) return null;
   const key = _lastIdeas[i].headline;
   if ((brand.liked||[]).some(x=>x.headline===key)) return 'up';
@@ -1156,7 +1156,7 @@ function getFeedback(i) {
 }
 
 window.setFeedback = function(i, dir) {
-  const brand = brands.find(b=>b.id===activeBrandId);
+  const brand = brands[activeBrandId];
   if (!brand || !_lastIdeas[i]) return;
   const idea = _lastIdeas[i];
   const snap = {headline:idea.headline, handle:idea.handle||'', humanTension:idea.humanTension||''};
@@ -1167,7 +1167,7 @@ window.setFeedback = function(i, dir) {
     if (dir==='up') brand.liked.push(snap);
     else brand.disliked.push(snap);
   }
-  saveBrands();
+  saveStore(brands);
   // Re-render just this card's feedback buttons
   const card = document.querySelectorAll('.idea-card')[i];
   if (card) {
@@ -1178,7 +1178,7 @@ window.setFeedback = function(i, dir) {
 };
 
 function buildFeedbackPrompt() {
-  const brand = brands.find(b=>b.id===activeBrandId);
+  const brand = brands[activeBrandId];
   if (!brand) return '';
   const liked = brand.liked||[];
   const disliked = brand.disliked||[];
