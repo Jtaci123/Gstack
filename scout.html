@@ -258,9 +258,9 @@
       <!-- RUN -->
       <div class="run-strip">
         <select id="ideaCount">
-          <option value="3">3 ideas</option>
-          <option value="5">5 ideas</option>
-          <option value="1">1 idea</option>
+          <option value="10">10 ideas</option>
+          <option value="20">20 ideas</option>
+          <option value="30">30 ideas</option>
         </select>
         <button class="run-btn" id="runBtn" onclick="runScout()">
           <span class="run-dot"></span>
@@ -670,7 +670,7 @@ Return a JSON array with exactly ${count} objects:
 }
 
 Rank by score descending. Return ONLY the JSON array, no markdown, no explanation.`,
-      4096
+      8192
     );
 
     let ideas;
