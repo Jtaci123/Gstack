@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scout — Autonomous Brand Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,7 +16,6 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* HEADER */
   .header {
     border-bottom: 1px solid #1f2937;
     padding: 20px 32px;
@@ -37,14 +37,12 @@
     letter-spacing: 0.8px;
   }
 
-  /* LAYOUT */
   .container {
     max-width: 860px;
     margin: 0 auto;
     padding: 40px 24px 80px;
   }
 
-  /* SETUP PANEL */
   .setup-panel {
     background: #111118;
     border: 1px solid #1f2937;
@@ -57,10 +55,80 @@
     font-weight: 600;
     color: #e5e7eb;
     margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
+
+  /* PDF DROP ZONE */
+  .drop-zone {
+    border: 2px dashed #1f2937;
+    border-radius: 14px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: #7c3aed;
+    background: #0d0d1a;
+  }
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .drop-icon { font-size: 28px; margin-bottom: 8px; }
+  .drop-text { font-size: 14px; color: #6b7280; }
+  .drop-text strong { color: #a78bfa; }
+  .drop-sub { font-size: 11px; color: #374151; margin-top: 4px; }
+
+  .pdf-loaded {
+    display: none;
+    background: #0d0d14;
+    border: 1px solid #2e1065;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #c4b5fd;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  .pdf-loaded.visible { display: flex; }
+  .pdf-clear {
+    background: none;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+  }
+  .pdf-clear:hover { color: #9ca3af; }
+
+  .divider {
+    height: 1px;
+    background: #1f2937;
+    margin: 20px 0;
+    position: relative;
+  }
+  .divider-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #111118;
+    padding: 0 12px;
+    font-size: 11px;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
   .field { margin-bottom: 16px; }
   .field label {
     display: block;
@@ -85,10 +153,7 @@
     outline: none;
     transition: border-color 0.15s;
   }
-  .field input:focus,
-  .field textarea:focus {
-    border-color: #7c3aed;
-  }
+  .field input:focus, .field textarea:focus { border-color: #7c3aed; }
   .field textarea { resize: vertical; }
 
   .field-row {
@@ -97,7 +162,6 @@
     gap: 12px;
   }
 
-  /* PREFILL BUTTON */
   .prefill-btn {
     display: inline-flex;
     align-items: center;
@@ -115,7 +179,6 @@
   }
   .prefill-btn:hover { opacity: 0.8; }
 
-  /* RUN BUTTON */
   .run-btn {
     width: 100%;
     padding: 14px;
@@ -132,7 +195,6 @@
   .run-btn:hover { opacity: 0.85; }
   .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* STATUS */
   .status {
     display: none;
     background: #0d0d14;
@@ -146,6 +208,21 @@
   }
   .status.visible { display: block; }
 
+  .error-box {
+    display: none;
+    background: #450a0a;
+    border: 1px solid #7f1d1d;
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #fca5a5;
+    margin-top: 16px;
+  }
+  .error-box.visible { display: block; }
+
+  .key-note { font-size: 11px; color: #374151; margin-top: 6px; }
+  .key-note a { color: #6b7280; }
+
   /* RESULTS */
   .results { display: none; }
   .results.visible { display: block; }
@@ -156,17 +233,9 @@
     justify-content: space-between;
     margin-bottom: 20px;
   }
-  .results-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #f9fafb;
-  }
-  .results-meta {
-    font-size: 12px;
-    color: #4b5563;
-  }
+  .results-title { font-size: 18px; font-weight: 700; color: #f9fafb; }
+  .results-meta { font-size: 12px; color: #4b5563; }
 
-  /* IDEA CARD */
   .idea-card {
     background: #111118;
     border: 1px solid #1f2937;
@@ -214,31 +283,13 @@
     flex: 1;
   }
 
-  .idea-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-  }
-  .tag {
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 500;
-  }
+  .idea-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tag { padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
   .tag-platform { background: #1e3a5f; color: #93c5fd; }
   .tag-format   { background: #1f2937; color: #9ca3af; }
 
-  .idea-section {
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #9ca3af;
-    line-height: 1.65;
-  }
-  .idea-section strong {
-    color: #e5e7eb;
-    font-weight: 600;
-  }
+  .idea-section { margin-bottom: 10px; font-size: 13px; color: #9ca3af; line-height: 1.65; }
+  .idea-section strong { color: #e5e7eb; font-weight: 600; }
 
   .idea-signals {
     margin-top: 12px;
@@ -248,48 +299,11 @@
     border-top: 1px solid #1f2937;
   }
 
-  /* ERROR */
-  .error-box {
-    display: none;
-    background: #450a0a;
-    border: 1px solid #7f1d1d;
-    border-radius: 12px;
-    padding: 14px 18px;
-    font-size: 13px;
-    color: #fca5a5;
-    margin-top: 16px;
-  }
-  .error-box.visible { display: block; }
-
-  /* DIVIDER */
-  .divider {
-    height: 1px;
-    background: #1f2937;
-    margin: 28px 0;
-  }
-
-  /* API KEY NOTE */
-  .key-note {
-    font-size: 11px;
-    color: #374151;
-    margin-top: 6px;
-  }
-  .key-note a { color: #6b7280; }
-
-  /* SIGNALS TOGGLE */
-  .signals-section {
-    margin-top: 12px;
-  }
+  .signals-section { margin-top: 12px; }
   .signals-toggle {
-    background: none;
-    border: none;
-    color: #4b5563;
-    font-size: 12px;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    background: none; border: none; color: #4b5563;
+    font-size: 12px; cursor: pointer; padding: 0;
+    display: flex; align-items: center; gap: 4px;
   }
   .signals-toggle:hover { color: #6b7280; }
   .signals-box {
@@ -320,13 +334,25 @@
 
 <div class="container">
 
-  <!-- SETUP -->
   <div class="setup-panel">
     <div class="setup-title">⚙️ Brand Setup</div>
 
-    <button class="prefill-btn" onclick="loadRingPop()">
-      💍 Load Ring Pop example
-    </button>
+    <!-- PDF DROP ZONE -->
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="pdfInput" accept=".pdf" />
+      <div class="drop-icon">📄</div>
+      <div class="drop-text"><strong>Drop your brand PDF here</strong> or click to browse</div>
+      <div class="drop-sub">Scout will read the entire document and use it as your brand brief</div>
+    </div>
+
+    <div class="pdf-loaded" id="pdfLoaded">
+      <span id="pdfFileName">📄 brand.pdf loaded</span>
+      <button class="pdf-clear" onclick="clearPdf()" title="Remove PDF">✕</button>
+    </div>
+
+    <div class="divider"><span class="divider-label">or fill in manually</span></div>
+
+    <button class="prefill-btn" onclick="loadRingPop()">💍 Load Ring Pop example</button>
 
     <div class="field-row">
       <div class="field">
@@ -344,7 +370,7 @@
     </div>
 
     <div class="field">
-      <label>Target Audience</label>
+      <label>Target Audience <span style="color:#374151;font-size:10px;text-transform:none;">(auto-filled from PDF if uploaded)</span></label>
       <input type="text" id="audience" placeholder="Who buys this? Age, interests, platforms..." />
     </div>
 
@@ -360,26 +386,24 @@
 
     <div class="field-row">
       <div class="field">
-        <label>Do ✓ (what works)</label>
+        <label>Do ✓</label>
         <input type="text" id="doList" placeholder="nostalgia, bold color, Gen Z humor..." />
       </div>
       <div class="field">
-        <label>Don't ✗ (what to avoid)</label>
+        <label>Don't ✗</label>
         <input type="text" id="dontList" placeholder="corporate tone, health messaging..." />
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div style="height:1px;background:#1f2937;margin:20px 0;"></div>
 
     <div class="field">
       <label>Anthropic API Key</label>
       <input type="password" id="apiKey" placeholder="sk-ant-..." />
-      <div class="key-note">Used only in your browser. Never sent anywhere except Anthropic's API. Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+      <div class="key-note">Used only in your browser. Never sent anywhere except Anthropic's API. <a href="https://console.anthropic.com" target="_blank">Get a key →</a></div>
     </div>
 
-    <button class="run-btn" id="runBtn" onclick="runScout()">
-      ▶ Run Scout
-    </button>
+    <button class="run-btn" id="runBtn" onclick="runScout()">▶ Run Scout</button>
 
     <div class="status" id="status"></div>
     <div class="error-box" id="errorBox"></div>
@@ -392,7 +416,6 @@
       <div class="results-meta" id="resultsMeta"></div>
     </div>
     <div id="ideasContainer"></div>
-
     <div class="signals-section">
       <button class="signals-toggle" onclick="toggleSignals()">
         <span id="signalsToggleIcon">▶</span> View signal data used
@@ -403,7 +426,86 @@
 
 </div>
 
-<script>
+<script type="module">
+// PDF.js setup
+const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+let pdfjsLib = null;
+let pdfText = '';
+
+async function getPdfJs() {
+  if (pdfjsLib) return pdfjsLib;
+  const mod = await import(PDFJS_URL);
+  mod.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+  pdfjsLib = mod;
+  return mod;
+}
+
+async function extractPdfText(file) {
+  const pdfjs = await getPdfJs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    fullText += content.items.map(item => item.str).join(' ') + '\n';
+  }
+  return fullText.trim();
+}
+
+async function handlePdfFile(file) {
+  if (!file || file.type !== 'application/pdf') return;
+  setStatus('📄 Reading PDF...');
+  try {
+    pdfText = await extractPdfText(file);
+    document.getElementById('pdfFileName').textContent = `📄 ${file.name} — ${pdf_pageCount(pdfText)} pages read`;
+    document.getElementById('pdfLoaded').classList.add('visible');
+    document.getElementById('dropZone').style.display = 'none';
+
+    // Try to extract brand name from first line of PDF
+    const firstLine = pdfText.split('\n')[0].trim().slice(0, 60);
+    if (firstLine && !document.getElementById('brandName').value) {
+      document.getElementById('brandName').value = firstLine;
+    }
+
+    document.getElementById('status').classList.remove('visible');
+    setStatus('✅ PDF loaded — ' + pdfText.length.toLocaleString() + ' characters extracted. Hit Run Scout.');
+    setTimeout(() => document.getElementById('status').classList.remove('visible'), 3000);
+  } catch (err) {
+    pdfText = '';
+    document.getElementById('status').classList.remove('visible');
+    showError('Could not read PDF: ' + err.message);
+  }
+}
+
+function pdf_pageCount(text) {
+  return Math.ceil(text.length / 3000);
+}
+
+window.clearPdf = function() {
+  pdfText = '';
+  document.getElementById('pdfLoaded').classList.remove('visible');
+  document.getElementById('dropZone').style.display = '';
+  document.getElementById('pdfInput').value = '';
+};
+
+// File input
+document.getElementById('pdfInput').addEventListener('change', (e) => {
+  if (e.target.files[0]) handlePdfFile(e.target.files[0]);
+});
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handlePdfFile(file);
+});
+
+// Ring Pop prefill
 const RING_POP = {
   brandName: "Ring Pop",
   audience: "Gen Z (16-24), nostalgia seekers, social media natives who grew up in the 90s/early 2000s",
@@ -414,39 +516,39 @@ const RING_POP = {
   ideaCount: "3",
 };
 
-function loadRingPop() {
+window.loadRingPop = function() {
   for (const [key, val] of Object.entries(RING_POP)) {
     const el = document.getElementById(key);
     if (el) el.value = val;
   }
-}
+  pdfText = '';
+  document.getElementById('pdfLoaded').classList.remove('visible');
+  document.getElementById('dropZone').style.display = '';
+};
 
 function getSignals(brandName, audience) {
   return `LIVE CULTURAL SIGNALS — ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
 
 Source: Reddit (r/nostalgia, r/GenZ, r/candy)
-- "Why Gen Z Is Reviving 90s Fashion and Pop Culture" (r/Feedpulp, 2026-05-28) — 90s revival trend accelerating; "vintage fashion, iconic music, and retro pop culture are making a huge comeback" driven by nostalgia across social media and street style
-- r/cassetteculture thread "Why flipping is killing the culture" (266 upvotes, 274 comments) — massive anti-clout backlash: "You name it, it's being sucked dry by flippers, influencers, and clout chasers. Nothing can be fun; all must be hustle."
-- r/90smovies: Rush Hour (1998) trigger-warning controversy went viral (461 comments, June 19) — intense nostalgia for unfiltered 90s culture
+- "Why Gen Z Is Reviving 90s Fashion and Pop Culture" (r/Feedpulp, 2026-05-28) — 90s revival accelerating; "vintage fashion, iconic music, and retro pop culture are making a huge comeback"
+- r/cassetteculture "Why flipping is killing the culture" (266 upvotes, 274 comments) — anti-clout backlash: "Nothing can be fun; all must be hustle."
+- r/90smovies: Rush Hour 1998 trigger-warning controversy viral (461 comments, June 19) — intense nostalgia for unfiltered 90s culture
 
 Source: Hacker News
-- Oura Ring 5 launch covered twice (Bloomberg + official, 2026-05-28) — smart ring category mainstream; ring form factor top of mind across tech AND fashion simultaneously
-- "The ring is 40% smaller, more like a regular ring" — wearable-as-jewelry positioning gaining traction
+- Oura Ring 5 launch covered twice this week — smart ring category mainstream; ring form factor top of mind across tech AND fashion
+- "40% smaller, more like a regular ring" — wearable-as-jewelry positioning gaining traction
 
 Source: TikTok / Social Trends
 - #Y2Kaesthetic trending — 90s candy visuals getting heavy engagement
 - "Childhood snacks" unboxing format averaging 2M+ views
-- Anti-luxury / authenticity backlash posts going viral ("just let things be fun again")
-- Nostalgia candy creators featuring Ring Pop in viral clips
+- Anti-luxury / authenticity backlash going viral ("just let things be fun again")
 
 Source: Cultural Macro
 - Wearable tech category exploding (Apple Watch Ultra, Oura Ring 5, Samsung Galaxy Ring)
-- Ring Pop pre-dates all of them by 45 years — the original wearable
 - Y2K aesthetic running through fashion, music, beauty simultaneously
 - Gen Z spending on nostalgic products +34% YoY
 
-Brand: ${brandName}
-Audience: ${audience}`;
+Brand context: ${brandName} | Audience: ${audience}`;
 }
 
 function setStatus(msg) {
@@ -465,7 +567,7 @@ function hideError() {
   document.getElementById('errorBox').classList.remove('visible');
 }
 
-async function runScout() {
+window.runScout = async function() {
   const brandName = document.getElementById('brandName').value.trim();
   const audience  = document.getElementById('audience').value.trim();
   const tone      = document.getElementById('tone').value.trim();
@@ -488,14 +590,20 @@ async function runScout() {
   const signals = getSignals(brandName, audience);
   document.getElementById('signalsBox').textContent = signals;
 
-  const brandDoc = [
-    `Brand: ${brandName}`,
-    audience && `Audience: ${audience}`,
-    tone     && `Tone & Voice: ${tone}`,
-    history  && `History & Context: ${history}`,
-    doList   && `Do (what works): ${doList}`,
-    dontList && `Don't (what to avoid): ${dontList}`,
-  ].filter(Boolean).join('\n');
+  // Build brand doc — prefer PDF if loaded, otherwise use form fields
+  let brandDoc;
+  if (pdfText) {
+    brandDoc = `Brand: ${brandName}\n\nBrand Document (from PDF):\n${pdfText.slice(0, 8000)}`;
+  } else {
+    brandDoc = [
+      `Brand: ${brandName}`,
+      audience && `Audience: ${audience}`,
+      tone     && `Tone & Voice: ${tone}`,
+      history  && `History & Context: ${history}`,
+      doList   && `Do (what works): ${doList}`,
+      dontList && `Don't (what to avoid): ${dontList}`,
+    ].filter(Boolean).join('\n');
+  }
 
   const prompt = `You are Scout, an autonomous marketing intelligence system.
 
@@ -507,7 +615,7 @@ ${signals}
 Generate exactly ${ideaCount} ranked marketing campaign ideas that intersect what is trending RIGHT NOW with what is on-brand. Each idea must be grounded in the real signals provided above.
 
 Return a JSON array with exactly ${ideaCount} objects. Each object must have these exact keys:
-- headline: string (punchy campaign name, max 10 words — NO quotes around it)
+- headline: string (punchy campaign name, max 10 words)
 - platform: string (e.g. "TikTok", "Instagram + OOH", "X/Twitter + Email")
 - format: string (e.g. "3-part video series", "limited drop + OOH", "print + social campaign")
 - whyNow: string (1-2 sentences citing specific signal data from above)
@@ -563,16 +671,15 @@ Rank by score descending. Return ONLY the JSON array, no markdown, no other text
     btn.disabled = false;
     btn.textContent = '▶ Run Scout Again';
   }
-}
+};
 
 function renderIdeas(ideas, brandName) {
   const container = document.getElementById('ideasContainer');
   const meta = document.getElementById('resultsMeta');
-
   const now = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   meta.textContent = `${ideas.length} ideas for ${brandName} · ${now}`;
 
-  container.innerHTML = ideas.map((idea, i) => {
+  container.innerHTML = ideas.map((idea) => {
     const scoreClass = idea.score >= 8 ? 'score-high' : idea.score >= 6 ? 'score-mid' : 'score-low';
     return `
       <div class="idea-card">
@@ -587,8 +694,7 @@ function renderIdeas(ideas, brandName) {
         <div class="idea-section"><strong>Why now:</strong> ${escHtml(idea.whyNow)}</div>
         <div class="idea-section"><strong>Execution:</strong> ${escHtml(idea.execution)}</div>
         ${idea.sourceSignals ? `<div class="idea-signals">Signals: ${escHtml(idea.sourceSignals)}</div>` : ''}
-      </div>
-    `;
+      </div>`;
   }).join('');
 
   document.getElementById('results').classList.add('visible');
@@ -597,18 +703,16 @@ function renderIdeas(ideas, brandName) {
 
 function escHtml(str) {
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function toggleSignals() {
+window.toggleSignals = function() {
   const box = document.getElementById('signalsBox');
   const icon = document.getElementById('signalsToggleIcon');
   const visible = box.classList.toggle('visible');
   icon.textContent = visible ? '▼' : '▶';
-}
+};
 </script>
 </body>
 </html>
