@@ -168,7 +168,13 @@
   .rigor-cliche  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
   .rigor-note { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
   .rigor-score { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 12px; }
-  .idea-actions { grid-column: 1/-1; display: flex; justify-content: flex-end; padding-top: 10px; }
+  .idea-actions { grid-column: 1/-1; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; gap: 12px; }
+  .feedback-btns { display: flex; gap: 6px; }
+  .btn-feedback { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--rule); background: none; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all .15s; opacity: .5; }
+  .btn-feedback:hover { opacity: 1; border-color: var(--ink); transform: scale(1.1); }
+  .btn-feedback.active-up { background: #d1fae5; border-color: #6ee7b7; opacity: 1; }
+  .btn-feedback.active-down { background: #fee2e2; border-color: #fca5a5; opacity: 1; }
+  .feedback-count { font-family: var(--mono); font-size: 8px; color: var(--ghost); letter-spacing: .1em; }
   .btn-pager { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 14px; border: 1px solid var(--ink); background: none; color: var(--ink); border-radius: 2px; cursor: pointer; transition: background .15s, color .15s; }
   .btn-pager:hover { background: var(--ink); color: var(--paper); }
   .source-log-toggle { margin-top: 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: none; background: none; padding: 0; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; transition: color .15s; }
@@ -663,7 +669,7 @@ Before any idea lands, ask: Is this already in the category? Is this just polish
 ${brandIntel}
 
 ═══ LIVE CULTURAL SCAN ═══
-${culturalScan}
+${culturalScan}${buildFeedbackPrompt()}
 
 ═══ GENERATION RULES ═══
 Every idea must:
@@ -1058,6 +1064,54 @@ window.open1Pager = function(i) {
   w.document.close();
 };
 
+function getFeedback(i) {
+  const brand = brands.find(b=>b.id===activeBrandId);
+  if (!brand || !_lastIdeas[i]) return null;
+  const key = _lastIdeas[i].headline;
+  if ((brand.liked||[]).some(x=>x.headline===key)) return 'up';
+  if ((brand.disliked||[]).some(x=>x.headline===key)) return 'down';
+  return null;
+}
+
+window.setFeedback = function(i, dir) {
+  const brand = brands.find(b=>b.id===activeBrandId);
+  if (!brand || !_lastIdeas[i]) return;
+  const idea = _lastIdeas[i];
+  const snap = {headline:idea.headline, handle:idea.handle||'', humanTension:idea.humanTension||''};
+  brand.liked = (brand.liked||[]).filter(x=>x.headline!==snap.headline);
+  brand.disliked = (brand.disliked||[]).filter(x=>x.headline!==snap.headline);
+  const current = getFeedback(i);
+  if (current !== dir) {
+    if (dir==='up') brand.liked.push(snap);
+    else brand.disliked.push(snap);
+  }
+  saveBrands();
+  // Re-render just this card's feedback buttons
+  const card = document.querySelectorAll('.idea-card')[i];
+  if (card) {
+    const newFb = getFeedback(i);
+    card.querySelector('.btn-feedback:nth-child(1)').className = 'btn-feedback' + (newFb==='up' ? ' active-up' : '');
+    card.querySelector('.btn-feedback:nth-child(2)').className = 'btn-feedback' + (newFb==='down' ? ' active-down' : '');
+  }
+};
+
+function buildFeedbackPrompt() {
+  const brand = brands.find(b=>b.id===activeBrandId);
+  if (!brand) return '';
+  const liked = brand.liked||[];
+  const disliked = brand.disliked||[];
+  let out = '';
+  if (liked.length) {
+    out += '\n\nAPPROVED DIRECTIONS (user-marked on-brand — lean into these patterns):\n';
+    out += liked.map(x=>`- "${x.headline}"${x.handle?' / '+x.handle:''}: ${x.humanTension}`).join('\n');
+  }
+  if (disliked.length) {
+    out += '\n\nREJECTED DIRECTIONS (user-marked off-brand — avoid these patterns):\n';
+    out += disliked.map(x=>`- "${x.headline}"${x.handle?' / '+x.handle:''}: ${x.humanTension}`).join('\n');
+  }
+  return out;
+}
+
 function renderIdeas(ideas, brand) {
   _lastIdeas = ideas;
   _lastBrand = brand;
@@ -1068,6 +1122,7 @@ function renderIdeas(ideas, brand) {
       'Strong Backbone':'rigor-strong','Promising but Soft':'rigor-soft',
       'Execution-Led':'rigor-exec','Decorative':'rigor-deco','Cliché Risk':'rigor-cliche'
     }[idea.rigorLabel] || 'rigor-deco';
+    const fb = getFeedback(i);
     return `
     <div class="idea-card">
       <div class="idea-header">
@@ -1092,7 +1147,13 @@ function renderIdeas(ideas, brand) {
           <span class="rigor-note">${esc(idea.rigorNote||'')}</span>
           ${idea.rigorScore?`<span class="rigor-score">Concept ${idea.rigorScore}/10</span>`:''}
         </div>`:''}
-        <div class="idea-actions"><button class="btn-pager" onclick="open1Pager(${i})">Generate 1-Pager</button></div>
+        <div class="idea-actions">
+          <div class="feedback-btns">
+            <button class="btn-feedback ${fb==='up'?'active-up':''}" onclick="setFeedback(${i},'up')" title="On-brand">👍</button>
+            <button class="btn-feedback ${fb==='down'?'active-down':''}" onclick="setFeedback(${i},'down')" title="Off-brand">👎</button>
+          </div>
+          <button class="btn-pager" onclick="open1Pager(${i})">Generate 1-Pager</button>
+        </div>
       </div>
     </div>`;
   }).join('');
