@@ -225,7 +225,7 @@
       </div>
 
       <!-- SOURCES -->
-      <div class="section-label">Documents &amp; sources</div>
+      <div class="section-label">Extra context <span style="font-size:8px;opacity:.5;text-transform:none;letter-spacing:0">(optional — Scout works without this)</span></div>
 
       <div id="sourceListWrap">
         <div class="drop-zone-compact" id="dropZone">
@@ -570,34 +570,35 @@ window.runScout = async function() {
 
   if (!b.name) { setError('Give this brand a name first.'); return; }
   if (!apiKey) { setError('Enter your Anthropic API key (top right).'); return; }
-  const ready = (b.sources||[]).filter(s => s.status==='done' && s.text);
-  if (!ready.length) { setError('Add at least one document or URL first.'); return; }
 
   const btn = document.getElementById('runBtn');
   btn.disabled = true;
-  const combined = ready.map((s,i) => `--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,5000)}`).join('\n\n');
+
+  // Optional: any uploaded docs/URLs enrich Phase 1 but are not required
+  const ready = (b.sources||[]).filter(s => s.status==='done' && s.text);
+  const extraDocs = ready.length
+    ? `\n\nADDITIONAL BRAND DOCUMENTS PROVIDED:\n${ready.map((s,i)=>`--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,4000)}`).join('\n\n')}`
+    : '';
 
   try {
-    // ── PHASE 1: Brand Intelligence
-    setStatus('<span class="pulse-dot"></span> Phase 1 of 3 · Reading brand documents…');
+    // ── PHASE 1: Brand Intelligence (from Claude's knowledge + optional docs)
+    setStatus('<span class="pulse-dot"></span> Phase 1 of 3 · Building brand intelligence…');
     const brandIntel = await claudeCall(
       apiKey,
-      `You are a senior brand strategist at a top creative agency. Extract a sharp, structured brand brief from the provided documents. Be specific and honest — note what the brand does well, where it's culturally relevant, and any weaknesses or white space.`,
+      `You are a senior brand strategist and cultural analyst at a top creative agency. You have deep knowledge of brands, their histories, audiences, and cultural positioning. Build a sharp, honest brand brief from your own knowledge. Be specific — no generic marketing language.`,
       `Brand: ${b.name}
 
-SOURCE DOCUMENTS:
-${combined}
+Using your knowledge of ${b.name}, build a complete brand brief:
 
-Extract a structured brand brief covering:
-1. BRAND ESSENCE: What this brand truly stands for (not marketing copy — the real thing)
-2. AUDIENCE: Who they are, how they consume culture, what they care about
-3. TONE & VOICE: How the brand talks, what it avoids
-4. CULTURAL EQUITY: What authentic cultural moments/movements this brand can credibly own
-5. RECENT TERRITORY: What campaigns, activations, or moves the brand has made recently
-6. WHITE SPACE: What opportunities the brand hasn't seized yet
-7. DO / DON'T: Hard rules for any campaign
+1. BRAND ESSENCE: What this brand truly stands for (the real thing, not the tagline)
+2. AUDIENCE: Who they are, how they consume culture, what they care about, their relationship with this brand
+3. TONE & VOICE: How the brand communicates, what it avoids
+4. CULTURAL EQUITY: What cultural moments, subcultures, aesthetics, or movements this brand authentically owns or can credibly enter
+5. RECENT TERRITORY: Notable campaigns, activations, collabs, or cultural moves this brand has made in the last 1-2 years
+6. WHITE SPACE: Where this brand hasn't played yet — the untapped territory
+7. HARD RULES: What this brand must never do${extraDocs}
 
-Be direct and specific. This brief will be used to generate breakthrough campaign ideas.`,
+Be direct, specific, and honest. This brief feeds idea generation.`,
       1500
     );
 
