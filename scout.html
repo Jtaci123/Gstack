@@ -271,7 +271,9 @@
     <span class="dateline" id="dateline"></span>
   </div>
   <div class="masthead-right">
-    <span class="key-label">API Key</span>
+    <span class="key-label">Magnific</span>
+    <input type="password" class="key-input" id="magnificKey" placeholder="Magnific API key…" style="width:160px;" />
+    <span class="key-label" style="margin-left:8px;">Anthropic</span>
     <input type="password" class="key-input" id="apiKey" placeholder="sk-ant-api03-..." />
   </div>
 </header>
@@ -945,7 +947,42 @@ function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid'
 let _lastIdeas = [];
 let _lastBrand = '';
 
-window.open1Pager = function(i) {
+// ── MAGNIFIC IMAGE GENERATION
+async function magnificCall(prompt) {
+  const key = document.getElementById('magnificKey')?.value?.trim();
+  if (!key) return null;
+
+  // Submit generation job
+  const res = await fetch('https://api.magnific.com/v1/ai/text-to-image', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Magnific-API-Key': key,
+    },
+    body: JSON.stringify({ prompt }),
+  });
+  if (!res.ok) throw new Error(`Magnific submit failed: ${res.status}`);
+  const job = await res.json();
+  const taskId = job.id || job.task_id || job.taskId;
+  if (!taskId) throw new Error('No task ID from Magnific');
+
+  // Poll until complete (max ~90s)
+  for (let attempt = 0; attempt < 18; attempt++) {
+    await new Promise(r => setTimeout(r, 5000));
+    const poll = await fetch(`https://api.magnific.com/v1/ai/text-to-image/${taskId}`, {
+      headers: { 'X-Magnific-API-Key': key },
+    });
+    if (!poll.ok) continue;
+    const data = await poll.json();
+    if (data.status === 'completed' || data.status === 'done') {
+      return data.url || data.image_url || data.output_url || null;
+    }
+    if (data.status === 'failed') throw new Error('Magnific generation failed');
+  }
+  throw new Error('Magnific timed out');
+}
+
+window.open1Pager = async function(i) {
   const idea = _lastIdeas[i];
   const brandName = _lastBrand;
   if (!idea) return;
@@ -954,228 +991,77 @@ window.open1Pager = function(i) {
   const acDim = idea.score >= 9 ? 'rgba(232,68,26,.15)' : idea.score >= 7 ? 'rgba(34,197,94,.12)' : 'rgba(245,158,11,.12)' ;
   const year = new Date().getFullYear();
 
-  // Derive image keywords from idea text for Unsplash
-  const imgKeywords = encodeURIComponent(
-    (idea.platform + ' ' + idea.format + ' ' + brandName)
-      .replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ',').slice(0, 60)
-  );
-  const imgUrl = `https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1600&q=80&fit=crop`;
-  // Use a curated Unsplash collection URL with seed for variety
+  // Fallback image (used if Magnific key not set or fails)
   const imgSeed = Math.abs(idea.headline.split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % 1000;
-  const heroImg = `https://picsum.photos/seed/${imgSeed}/1600/900`;
+  let heroImg = `https://picsum.photos/seed/${imgSeed}/1600/900`;
 
-  const html = `<!DOCTYPE html>
+  // Try Magnific image generation if key is present
+  const magnificKey = document.getElementById('magnificKey')?.value?.trim();
+  let magnificLoading = !!magnificKey;
+  let magnificImageUrl = null;
+
+  // Build a cinematic image prompt from the idea
+  const imagePrompt = `Editorial, cinematic advertising photograph for a ${brandName} campaign. ${idea.headline}. ${idea.humanTension ? idea.humanTension + '.' : ''} Platform: ${idea.platform}. Mood: bold, high-contrast, commercial. 16:9 widescreen, professional studio or location photography, dramatic lighting.`;
+
+  if (magnificKey) {
+      // Open pager with loading state, swap image when Magnific resolves
+    const buildHtml = (imgSrc, imgLoading) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>${idea.headline}</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;}
-
-  /* 16:9 slide container */
-  .slide{
-    position:relative;
-    width:min(100vw, calc(100vh * 16/9));
-    height:min(100vh, calc(100vw * 9/16));
-    background:#08080d;
-    overflow:hidden;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    grid-template-rows:1fr;
-  }
-
-  /* ── LEFT PANEL ── */
-  .left{
-    position:relative;
-    padding:5% 5% 4% 6%;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    z-index:2;
-    background:#08080d;
-  }
-  .left::after{
-    content:'';
-    position:absolute;
-    right:0;top:0;bottom:0;
-    width:1px;
-    background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);
-  }
-
+  .slide{position:relative;width:min(100vw, calc(100vh * 16/9));height:min(100vh, calc(100vw * 9/16));background:#08080d;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
+  .left{position:relative;padding:5% 5% 4% 6%;display:flex;flex-direction:column;justify-content:space-between;z-index:2;background:#08080d;}
+  .left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);}
   .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
-  .brand-pill{
-    display:flex;align-items:center;gap:8px;
-    font-family:'Space Mono',monospace;
-    font-size:clamp(7px,1vw,11px);
-    letter-spacing:.2em;
-    text-transform:uppercase;
-    color:#555;
-  }
+  .brand-pill{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:clamp(7px,1vw,11px);letter-spacing:.2em;text-transform:uppercase;color:#555;}
   .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
-
-  .score-badge{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(8px,1.1vw,13px);
-    letter-spacing:.12em;
-    color:${ac};
-    border:1px solid ${ac};
-    padding:3px 10px;
-    border-radius:2px;
-  }
-
+  .score-badge{font-family:'Space Mono',monospace;font-size:clamp(8px,1.1vw,13px);letter-spacing:.12em;color:${ac};border:1px solid ${ac};padding:3px 10px;border-radius:2px;}
   .headline-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6% 0;}
-  .eyebrow{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(7px,.9vw,10px);
-    letter-spacing:.25em;
-    text-transform:uppercase;
-    color:${ac};
-    margin-bottom:3%;
-  }
-  .headline{
-    font-size:clamp(18px,3.6vw,52px);
-    font-weight:900;
-    line-height:1.0;
-    letter-spacing:-.03em;
-    color:#f5f3ee;
-    margin-bottom:5%;
-  }
+  .eyebrow{font-family:'Space Mono',monospace;font-size:clamp(7px,.9vw,10px);letter-spacing:.25em;text-transform:uppercase;color:${ac};margin-bottom:3%;}
+  .headline{font-family:'Highrise',sans-serif;font-size:clamp(18px,3.2vw,48px);font-weight:700;line-height:1.0;letter-spacing:.01em;color:#f5f3ee;margin-bottom:5%;}
   .chips{display:flex;gap:8px;flex-wrap:wrap;}
-  .chip{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(6px,.8vw,9px);
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    padding:3px 9px;
-    border:1px solid #2a2a35;
-    color:#555;
-  }
+  .chip{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border:1px solid #2a2a35;color:#555;}
   .chip-accent{border-color:${ac};color:${ac};}
-
   .brief-block{border-top:1px solid #1a1a24;padding-top:4%;}
   .brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:4%;}
-  .brief-field-label{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(6px,.75vw,8px);
-    letter-spacing:.2em;
-    text-transform:uppercase;
-    color:${ac};
-    margin-bottom:5px;
-  }
+  .brief-field-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.75vw,8px);letter-spacing:.2em;text-transform:uppercase;color:${ac};margin-bottom:5px;}
   .brief-field-text{font-size:clamp(9px,1.1vw,13px);color:#9ca3af;line-height:1.5;}
-
-  .footer-bar{
-    display:flex;align-items:center;justify-content:space-between;
-    padding-top:3%;
-    margin-top:3%;
-    border-top:1px solid #1a1a24;
-  }
+  .footer-bar{display:flex;align-items:center;justify-content:space-between;padding-top:3%;margin-top:3%;border-top:1px solid #1a1a24;}
   .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#333;}
   .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#333;}
-
-  /* ── RIGHT PANEL ── */
-  .right{
-    position:relative;
-    overflow:hidden;
-  }
-  .hero-img{
-    position:absolute;inset:0;
-    width:100%;height:100%;
-    object-fit:cover;
-    opacity:.55;
-    filter:saturate(.6) contrast(1.1);
-  }
-  .right-overlay{
-    position:absolute;inset:0;
-    background:linear-gradient(135deg, rgba(8,8,13,.7) 0%, rgba(8,8,13,.1) 100%);
-  }
-  .right-content{
-    position:relative;z-index:2;
-    height:100%;
-    display:flex;flex-direction:column;
-    justify-content:space-between;
-    padding:5%;
-  }
-
-  /* Mockup frames */
+  .right{position:relative;overflow:hidden;}
+  .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;filter:saturate(.7) contrast(1.1);transition:opacity .5s;}
+  .img-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#08080d;}
+  .img-loading-text{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.18em;text-transform:uppercase;color:${ac};animation:blink 1.4s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+  .right-overlay{position:absolute;inset:0;background:linear-gradient(135deg, rgba(8,8,13,.7) 0%, rgba(8,8,13,.1) 100%);}
+  .right-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:5%;}
   .mockup-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3%;flex:1;margin:5% 0;}
-  .mockup-frame{
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:4px;
-    background:rgba(8,8,13,.6);
-    display:flex;align-items:center;justify-content:center;
-    backdrop-filter:blur(4px);
-    position:relative;
-    overflow:hidden;
-  }
-  .mockup-frame::before{
-    content:'';position:absolute;inset:0;
-    background:${acDim};
-  }
-  .mockup-label{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(6px,.7vw,8px);
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:rgba(255,255,255,.25);
-    text-align:center;
-    position:relative;z-index:1;
-  }
-  /* First frame larger */
-  .mockup-frame.hero-frame{
-    grid-column:1/-1;
-    min-height:35%;
-  }
-  .hero-frame-inner{
-    position:relative;z-index:1;
-    text-align:center;
-    padding:12%;
-  }
-  .hero-frame-headline{
-    font-size:clamp(11px,1.6vw,20px);
-    font-weight:800;
-    color:#f5f3ee;
-    letter-spacing:-.02em;
-    line-height:1.1;
-    margin-bottom:8px;
-  }
-  .hero-frame-sub{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(6px,.7vw,8px);
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    color:${ac};
-  }
-
-  /* Signals strip */
-  .signals-strip{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(6px,.65vw,7.5px);
-    letter-spacing:.1em;
-    color:rgba(255,255,255,.2);
-    border-top:1px solid rgba(255,255,255,.06);
-    padding-top:3%;
-    line-height:1.7;
-  }
-
-  @media print{
-    html,body{width:297mm;height:167mm;display:block;}
-    .slide{width:297mm;height:167mm;}
-  }
+  .mockup-frame{border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(8,8,13,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);position:relative;overflow:hidden;}
+  .mockup-frame::before{content:'';position:absolute;inset:0;background:${acDim};}
+  .mockup-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center;position:relative;z-index:1;}
+  .mockup-frame.hero-frame{grid-column:1/-1;min-height:35%;}
+  .hero-frame-inner{position:relative;z-index:1;text-align:center;padding:12%;}
+  .hero-frame-headline{font-size:clamp(11px,1.6vw,20px);font-weight:800;color:#f5f3ee;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;}
+  .hero-frame-sub{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:${ac};}
+  .signals-strip{font-family:'Space Mono',monospace;font-size:clamp(6px,.65vw,7.5px);letter-spacing:.1em;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.06);padding-top:3%;line-height:1.7;}
+  .magnific-badge{position:absolute;bottom:8px;right:10px;font-family:'Space Mono',monospace;font-size:clamp(5px,.6vw,7px);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);z-index:3;}
+  @media print{html,body{width:297mm;height:167mm;display:block;}.slide{width:297mm;height:167mm;}}
 </style>
 </head>
 <body>
 <div class="slide">
-
-  <!-- LEFT: Brief -->
   <div class="left">
     <div class="top-bar">
       <div class="brand-pill">${brandName}</div>
       <div class="score-badge">${idea.score} / 10</div>
     </div>
-
     <div class="headline-block">
       <div class="eyebrow">${idea.rigorLabel || 'Campaign Concept'}</div>
       <div class="headline">${idea.headline}</div>
@@ -1185,57 +1071,177 @@ window.open1Pager = function(i) {
         <span class="chip">${idea.format}</span>
       </div>
     </div>
-
     <div class="brief-block">
       ${idea.humanTension ? `<div style="font-size:clamp(9px,1.05vw,12px);color:#e5e7eb;font-style:italic;font-weight:600;margin-bottom:4%;padding-bottom:3%;border-bottom:1px solid #1a1a24;">${idea.humanTension}</div>` : ''}
       <div class="brief-grid">
-        <div>
-          <div class="brief-field-label">Why Now</div>
-          <div class="brief-field-text">${idea.whyNow}</div>
-        </div>
-        <div>
-          <div class="brief-field-label">Execution</div>
-          <div class="brief-field-text">${idea.execution}</div>
-        </div>
+        <div><div class="brief-field-label">Why Now</div><div class="brief-field-text">${idea.whyNow}</div></div>
+        <div><div class="brief-field-label">Execution</div><div class="brief-field-text">${idea.execution}</div></div>
       </div>
       ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
       <div class="footer-bar">
-        <span class="footer-scout">🔭 Scout · Concept Rigor Engine</span>
+        <span class="footer-scout">{ SCOUT } · Concept Rigor Engine</span>
         <span class="footer-year">${year}</span>
       </div>
     </div>
   </div>
-
-  <!-- RIGHT: Visual -->
   <div class="right">
-    <img class="hero-img" src="${heroImg}" alt="" onerror="this.style.display='none'" />
+    ${imgLoading
+      ? `<div class="img-loading"><span class="img-loading-text">Generating image…</span></div>`
+      : `<img id="heroImg" class="hero-img" src="${imgSrc}" alt="" onerror="this.style.opacity=0" />`
+    }
     <div class="right-overlay"></div>
     <div class="right-content">
-
       <div class="mockup-grid">
-        <!-- Hero mockup frame -->
         <div class="mockup-frame hero-frame">
           <div class="hero-frame-inner">
             <div class="hero-frame-headline">${idea.headline}</div>
             <div class="hero-frame-sub">${idea.platform} · ${idea.format}</div>
           </div>
         </div>
-        <!-- Sub-frames: simulated phone/OOH mockups -->
-        <div class="mockup-frame">
-          <div class="mockup-label">Social post mockup</div>
-        </div>
-        <div class="mockup-frame">
-          <div class="mockup-label">OOH / activation</div>
-        </div>
+        <div class="mockup-frame"><div class="mockup-label">Social post mockup</div></div>
+        <div class="mockup-frame"><div class="mockup-label">OOH / activation</div></div>
       </div>
-
       ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${idea.sourceSignals}</div>` : ''}
     </div>
+    ${!imgLoading ? `<div class="magnific-badge">Image: Magnific AI</div>` : ''}
   </div>
-
 </div>
 </body>
 </html>`;
+
+    const w = window.open('', '_blank');
+    w.document.write(buildHtml(heroImg, true));
+    w.document.close();
+
+    try {
+      const magUrl = await magnificCall(imagePrompt);
+      if (magUrl && !w.closed) {
+        // Swap in the generated image
+        const img = w.document.createElement('img');
+        img.id = 'heroImg';
+        img.className = 'hero-img';
+        img.src = magUrl;
+        const loading = w.document.querySelector('.img-loading');
+        if (loading) loading.replaceWith(img);
+        const badge = w.document.createElement('div');
+        badge.className = 'magnific-badge';
+        badge.textContent = 'Image: Magnific AI';
+        w.document.querySelector('.right').appendChild(badge);
+      }
+    } catch(e) {
+      // Fallback to picsum if Magnific fails
+      if (!w.closed) {
+        const loading = w.document.querySelector('.img-loading');
+        if (loading) {
+          const img = w.document.createElement('img');
+          img.className = 'hero-img';
+          img.src = heroImg;
+          loading.replaceWith(img);
+        }
+      }
+    }
+    return;
+  }
+
+  // No Magnific key — build inline with picsum fallback
+  const buildHtml = (imgSrc, imgLoading) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${idea.headline}</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;}
+  .slide{position:relative;width:min(100vw, calc(100vh * 16/9));height:min(100vh, calc(100vw * 9/16));background:#08080d;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
+  .left{position:relative;padding:5% 5% 4% 6%;display:flex;flex-direction:column;justify-content:space-between;z-index:2;background:#08080d;}
+  .left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);}
+  .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
+  .brand-pill{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:clamp(7px,1vw,11px);letter-spacing:.2em;text-transform:uppercase;color:#555;}
+  .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
+  .score-badge{font-family:'Space Mono',monospace;font-size:clamp(8px,1.1vw,13px);letter-spacing:.12em;color:${ac};border:1px solid ${ac};padding:3px 10px;border-radius:2px;}
+  .headline-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6% 0;}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:clamp(7px,.9vw,10px);letter-spacing:.25em;text-transform:uppercase;color:${ac};margin-bottom:3%;}
+  .headline{font-family:'Highrise',sans-serif;font-size:clamp(18px,3.2vw,48px);font-weight:700;line-height:1.0;letter-spacing:.01em;color:#f5f3ee;margin-bottom:5%;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border:1px solid #2a2a35;color:#555;}
+  .chip-accent{border-color:${ac};color:${ac};}
+  .brief-block{border-top:1px solid #1a1a24;padding-top:4%;}
+  .brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:4%;}
+  .brief-field-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.75vw,8px);letter-spacing:.2em;text-transform:uppercase;color:${ac};margin-bottom:5px;}
+  .brief-field-text{font-size:clamp(9px,1.1vw,13px);color:#9ca3af;line-height:1.5;}
+  .footer-bar{display:flex;align-items:center;justify-content:space-between;padding-top:3%;margin-top:3%;border-top:1px solid #1a1a24;}
+  .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#333;}
+  .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#333;}
+  .right{position:relative;overflow:hidden;}
+  .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;filter:saturate(.7) contrast(1.1);}
+  .right-overlay{position:absolute;inset:0;background:linear-gradient(135deg, rgba(8,8,13,.7) 0%, rgba(8,8,13,.1) 100%);}
+  .right-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:5%;}
+  .mockup-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3%;flex:1;margin:5% 0;}
+  .mockup-frame{border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(8,8,13,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);position:relative;overflow:hidden;}
+  .mockup-frame::before{content:'';position:absolute;inset:0;background:${acDim};}
+  .mockup-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center;position:relative;z-index:1;}
+  .mockup-frame.hero-frame{grid-column:1/-1;min-height:35%;}
+  .hero-frame-inner{position:relative;z-index:1;text-align:center;padding:12%;}
+  .hero-frame-headline{font-size:clamp(11px,1.6vw,20px);font-weight:800;color:#f5f3ee;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;}
+  .hero-frame-sub{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:${ac};}
+  .signals-strip{font-family:'Space Mono',monospace;font-size:clamp(6px,.65vw,7.5px);letter-spacing:.1em;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.06);padding-top:3%;line-height:1.7;}
+  @media print{html,body{width:297mm;height:167mm;display:block;}.slide{width:297mm;height:167mm;}}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="left">
+    <div class="top-bar">
+      <div class="brand-pill">${brandName}</div>
+      <div class="score-badge">${idea.score} / 10</div>
+    </div>
+    <div class="headline-block">
+      <div class="eyebrow">${idea.rigorLabel || 'Campaign Concept'}</div>
+      <div class="headline">${idea.headline}</div>
+      ${idea.handle ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(7px,.85vw,10px);color:${ac};font-style:italic;margin-bottom:4%;">"${idea.handle}"</div>` : ''}
+      <div class="chips">
+        <span class="chip chip-accent">${idea.platform}</span>
+        <span class="chip">${idea.format}</span>
+      </div>
+    </div>
+    <div class="brief-block">
+      ${idea.humanTension ? `<div style="font-size:clamp(9px,1.05vw,12px);color:#e5e7eb;font-style:italic;font-weight:600;margin-bottom:4%;padding-bottom:3%;border-bottom:1px solid #1a1a24;">${idea.humanTension}</div>` : ''}
+      <div class="brief-grid">
+        <div><div class="brief-field-label">Why Now</div><div class="brief-field-text">${idea.whyNow}</div></div>
+        <div><div class="brief-field-label">Execution</div><div class="brief-field-text">${idea.execution}</div></div>
+      </div>
+      ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
+      <div class="footer-bar">
+        <span class="footer-scout">{ SCOUT } · Concept Rigor Engine</span>
+        <span class="footer-year">${year}</span>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <img class="hero-img" src="${imgSrc}" alt="" onerror="this.style.display='none'" />
+    <div class="right-overlay"></div>
+    <div class="right-content">
+      <div class="mockup-grid">
+        <div class="mockup-frame hero-frame">
+          <div class="hero-frame-inner">
+            <div class="hero-frame-headline">${idea.headline}</div>
+            <div class="hero-frame-sub">${idea.platform} · ${idea.format}</div>
+          </div>
+        </div>
+        <div class="mockup-frame"><div class="mockup-label">Social post mockup</div></div>
+        <div class="mockup-frame"><div class="mockup-label">OOH / activation</div></div>
+      </div>
+      ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${idea.sourceSignals}</div>` : ''}
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+
+  // No Magnific key — use picsum fallback inline
+  const html = buildHtml(heroImg, false);
   const w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
