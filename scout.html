@@ -438,49 +438,101 @@ function renderDropdown() {
     ids.map(id => `<option value="${id}"${activeBrandId===id?' selected':''}>${esc(brands[id].name||'Untitled')}</option>`).join('');
 }
 
-// ── BRAND COLOR (web search)
-async function fetchBrandColor(brand) {
-  const key = document.getElementById('apiKey')?.value?.trim();
-  if (!key || brand.color) return;
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'interleaved-thinking-2025-05-14',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 256,
-        tools: [{
-          type: 'web_search_20260209',
-          name: 'web_search',
-          max_uses: 2,
-        }],
-        system: 'You are a brand color expert. Search the web to find the official primary brand color. Respond with ONLY a valid 6-digit hex code — no # prefix, no explanation, nothing else.',
-        messages: [{
-          role: 'user',
-          content: `Search the web for the official primary brand hex color of ${brand.name}. Return only the 6-digit hex code (no #, no extra text).`,
-        }],
-      }),
-    });
-    if (!res.ok) return;
-    const d = await res.json();
-    // Extract text from the final text block (after any tool use)
-    const textBlock = (d.content || []).filter(b => b.type === 'text').pop();
-    if (!textBlock) return;
-    const hex = textBlock.text.trim().replace(/^#/, '').match(/[0-9a-fA-F]{6}/)?.[0];
-    if (hex) {
-      brand.color = '#' + hex;
-      const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
-      brand.colorDim = `rgba(${r},${g},${b2},0.12)`;
-      saveStore(brands);
-      applyBrandColor(brand);
-    }
-  } catch(e) { /* silent fail */ }
+// ── BRAND COLOR LOOKUP (no API call)
+const BRAND_COLORS = {
+  // Snack / Food
+  'doritos':        '#e8282a',
+  'mountain dew':   '#7ab800',
+  'gatorade':       '#f5a800',
+  'pepsi':          '#004b93',
+  'coca-cola':      '#f40009',
+  'coke':           '#f40009',
+  'red bull':       '#cc1e2c',
+  'monster':        '#82be00',
+  'cheetos':        '#f26522',
+  'frito-lay':      '#e8282a',
+  // Candy
+  'bazooka':        '#e8282a',
+  'ring pop':       '#e8282a',
+  'skittles':       '#e8282a',
+  'starburst':      '#f7a800',
+  'sour patch':     '#7ab800',
+  "reese's":        '#f26522',
+  'hershey':        '#6b3a2a',
+  'm&ms':           '#e8282a',
+  // Spirits / Beverage
+  'casamigos':      '#00897b',
+  'patron':         '#bfa96a',
+  'hennessy':       '#c8a96e',
+  'jack daniels':   '#1a1a1a',
+  'grey goose':     '#1b3a6b',
+  'modelo':         '#c8960c',
+  'corona':         '#f5c400',
+  'heineken':       '#006030',
+  // Tech / Gear
+  'otterbox':       '#f5c400',
+  'apple':          '#555555',
+  'samsung':        '#1428a0',
+  'google':         '#4285f4',
+  'meta':           '#0082fb',
+  'microsoft':      '#00a4ef',
+  'amazon':         '#ff9900',
+  'nike':           '#111111',
+  'adidas':         '#000000',
+  'jordan':         '#c8102e',
+  // Beauty / Fashion
+  'fenty':          '#c8102e',
+  'glossier':       '#f5a7b8',
+  'rare beauty':    '#c8102e',
+  'elf cosmetics':  '#00b140',
+  'ulta':           '#ff0090',
+  // Automotive
+  'ford':           '#003478',
+  'chevrolet':      '#d4a017',
+  'jeep':           '#1a5c38',
+  'ram':            '#c8102e',
+  'toyota':         '#eb0a1e',
+  // QSR / Fast Food
+  "mcdonald's":     '#ffc72c',
+  'taco bell':      '#702082',
+  'chick-fil-a':    '#e31837',
+  'chipotle':       '#a81612',
+  'subway':         '#008c15',
+  'wendy\'s':       '#e2203c',
+  'burger king':    '#f5a623',
+  'dominos':        '#006491',
+};
+
+function resolveBrandColor(name) {
+  const key = name.toLowerCase().trim();
+  // Exact or substring match
+  for (const [k, hex] of Object.entries(BRAND_COLORS)) {
+    if (key.includes(k) || k.includes(key)) return hex;
+  }
+  // Deterministic color from brand name (HSL with good saturation)
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = ((hash % 360) + 360) % 360;
+  // Convert HSL(hue, 70%, 52%) to hex
+  const h = hue / 360, s = 0.70, l = 0.52;
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const toHex = t => {
+    const c = t < 0 ? t+1 : t > 1 ? t-1 : t;
+    const v = c < 1/6 ? p+(q-p)*6*c : c < 1/2 ? q : c < 2/3 ? p+(q-p)*(2/3-c)*6 : p;
+    return Math.round(v*255).toString(16).padStart(2,'0');
+  };
+  return `#${toHex(h+1/3)}${toHex(h)}${toHex(h-1/3)}`;
+}
+
+function fetchBrandColor(brand) {
+  if (brand.color) return;
+  const hex = resolveBrandColor(brand.name).replace('#','');
+  brand.color = '#' + hex;
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
+  brand.colorDim = `rgba(${r},${g},${b2},0.12)`;
+  saveStore(brands);
+  applyBrandColor(brand);
 }
 
 function applyBrandColor(brand) {
