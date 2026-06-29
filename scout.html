@@ -438,27 +438,49 @@ function renderDropdown() {
     ids.map(id => `<option value="${id}"${activeBrandId===id?' selected':''}>${esc(brands[id].name||'Untitled')}</option>`).join('');
 }
 
-// ── BRAND COLOR
+// ── BRAND COLOR (web search)
 async function fetchBrandColor(brand) {
   const key = document.getElementById('apiKeyInput')?.value?.trim();
-  if (!key || brand.color) return; // already fetched or no key yet
+  if (!key || brand.color) return;
   try {
-    const raw = await claudeCall(
-      key,
-      `You are a brand design expert. Respond with only a valid hex color code — nothing else. No explanation, no #, just 6 hex digits.`,
-      `What is the single most recognizable primary brand color for ${brand.name}? Return only the 6-digit hex code (no #).`,
-      16
-    );
-    const hex = raw.trim().replace(/^#/, '').match(/^[0-9a-fA-F]{6}$/)?.[0];
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'interleaved-thinking-2025-05-14',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 256,
+        tools: [{
+          type: 'web_search_20260209',
+          name: 'web_search',
+          max_uses: 2,
+        }],
+        system: 'You are a brand color expert. Search the web to find the official primary brand color. Respond with ONLY a valid 6-digit hex code — no # prefix, no explanation, nothing else.',
+        messages: [{
+          role: 'user',
+          content: `Search the web for the official primary brand hex color of ${brand.name}. Return only the 6-digit hex code (no #, no extra text).`,
+        }],
+      }),
+    });
+    if (!res.ok) return;
+    const d = await res.json();
+    // Extract text from the final text block (after any tool use)
+    const textBlock = (d.content || []).filter(b => b.type === 'text').pop();
+    if (!textBlock) return;
+    const hex = textBlock.text.trim().replace(/^#/, '').match(/[0-9a-fA-F]{6}/)?.[0];
     if (hex) {
       brand.color = '#' + hex;
-      // rgba at 12% opacity for dark-mode tinted backgrounds
       const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
       brand.colorDim = `rgba(${r},${g},${b2},0.12)`;
       saveStore(brands);
       applyBrandColor(brand);
     }
-  } catch(e) { /* silent fail — keep default orange */ }
+  } catch(e) { /* silent fail */ }
 }
 
 function applyBrandColor(brand) {
