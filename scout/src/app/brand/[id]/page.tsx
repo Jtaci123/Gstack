@@ -44,26 +44,24 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
 
   return (
     <main className="min-h-screen" style={{ background: "#0a0a0f" }}>
-      <div className="border-b" style={{ borderColor: "#1f2937" }}>
-        <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/")} className="text-sm transition-opacity hover:opacity-80" style={{ color: "#6b7280" }}>
-              ← Back
-            </button>
-            <div>
-              <h1 className="text-xl font-bold" style={{ color: "#f9fafb" }}>{brand.name}</h1>
-              {brand.audience && <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{brand.audience}</p>}
-            </div>
-          </div>
-          <button
-            onClick={handleRun}
-            disabled={running}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-            style={{ background: "#7c3aed", color: "#fff" }}
-          >
-            {running ? "Running Scout..." : "▶ Run Scout Now"}
+      <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.push("/")} className="text-sm transition-opacity hover:opacity-80" style={{ color: "#6b7280" }}>
+            ← Back
           </button>
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: "#f9fafb" }}>{brand.name}</h1>
+            {brand.audience && <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{brand.audience}</p>}
+          </div>
         </div>
+        <button
+          onClick={handleRun}
+          disabled={running}
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+          style={{ background: "#7c3aed", color: "#fff" }}
+        >
+          {running ? "Running Scout..." : "▶ Run Scout Now"}
+        </button>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-10">

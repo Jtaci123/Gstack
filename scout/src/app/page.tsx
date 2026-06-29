@@ -20,27 +20,21 @@ export default function Home() {
 
   return (
     <main className="min-h-screen" style={{ background: "#0a0a0f" }}>
-      <div className="border-b" style={{ borderColor: "#1f2937" }}>
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold" style={{
-              background: "linear-gradient(135deg, #fff 0%, #a78bfa 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}>🔭 Scout</h1>
-            <p className="text-xs mt-0.5" style={{ color: "#4b5563", letterSpacing: "0.5px", textTransform: "uppercase" }}>Autonomous overnight brand intelligence</p>
-          </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ background: "#7c3aed", color: "#fff" }}
-          >
-            + Add Brand
-          </button>
+      <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold" style={{ color: "#f9fafb" }}>Brand Campaign Ideas</h2>
+          <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>Overnight campaign ideas grounded in live cultural signals</p>
         </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
+          style={{ background: "#7c3aed", color: "#fff" }}
+        >
+          + Add Brand
+        </button>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="max-w-5xl mx-auto px-6 py-4">
         {loading ? (
           <div className="text-center py-20" style={{ color: "#4b5563" }}>Loading...</div>
         ) : brands.length === 0 ? (
