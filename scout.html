@@ -440,7 +440,7 @@ function renderDropdown() {
 
 // ── BRAND COLOR (web search)
 async function fetchBrandColor(brand) {
-  const key = document.getElementById('apiKeyInput')?.value?.trim();
+  const key = document.getElementById('apiKey')?.value?.trim();
   if (!key || brand.color) return;
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
