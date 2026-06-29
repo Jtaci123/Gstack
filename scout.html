@@ -792,13 +792,13 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3000,
+        max_tokens: 1800,
         tools: [{
           type: 'web_search_20260209',
           name: 'web_search',
-          max_uses: 5,
+          max_uses: 3,
         }],
-        system: `You are a cultural intelligence analyst and trend forecaster at a top creative agency. Search the web to surface what is ACTUALLY happening right now and what is coming up — real dates, real events, real viral moments. Prioritize recency and specificity over generality.`,
+        system: `You are a cultural intelligence analyst at a top creative agency. Run 2-3 targeted web searches, then produce a tight cultural scan. Prioritize recency and specificity. Be concise — bullet points over paragraphs.`,
         messages: [{
           role: 'user',
           content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.${focusNote}
