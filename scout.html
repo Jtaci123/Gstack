@@ -730,7 +730,7 @@ window.runScout = async function() {
 
   try {
     // ── PHASE 1: Brand Intelligence (from Claude's knowledge + optional docs)
-    setStatus('<span class="pulse-dot"></span> Phase 1 of 3 · Building brand intelligence…');
+    setStatus('<span class="pulse-dot"></span> Phase 1 of 5 · Building brand intelligence…');
     const brandIntel = await claudeCall(
       apiKey,
       `You are a senior brand strategist and cultural analyst at a top creative agency. You have deep knowledge of brands, their histories, audiences, and cultural positioning. Build a sharp, honest brand brief from your own knowledge. Be specific — no generic marketing language.`,
@@ -750,33 +750,53 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
       1500
     );
 
-    // ── PHASE 2: Cultural Scan
-    setStatus('<span class="pulse-dot"></span> Phase 2 of 5 · Scanning cultural signals…');
+    // ── PHASE 2: Cultural Scan (live web search)
+    setStatus('<span class="pulse-dot"></span> Phase 2 of 5 · Scanning live cultural signals…');
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    const culturalScan = await claudeCall(
-      apiKey,
-      `You are a cultural intelligence analyst and trend forecaster. Your job is to surface the most creatively explosive cultural moments, trends, and tensions happening RIGHT NOW — the stuff that smart brands can tap into for breakthrough work.`,
-      `Today is ${today}. Brand we are developing ideas for: ${b.name}
+    const sixMonthsOut = new Date(Date.now() + 183 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const culturalScanRaw = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 3000,
+        tools: [{
+          type: 'web_search_20260209',
+          name: 'web_search',
+          max_uses: 5,
+        }],
+        system: `You are a cultural intelligence analyst and trend forecaster at a top creative agency. Search the web to surface what is ACTUALLY happening right now and what is coming up — real dates, real events, real viral moments. Prioritize recency and specificity over generality.`,
+        messages: [{
+          role: 'user',
+          content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.
 
-Produce a comprehensive cultural scan covering what is happening RIGHT NOW. Think like a mix of a trend agency, a social listening platform, and a cultural critic. Include:
+Search the web and produce a comprehensive live cultural scan from NOW through ${sixMonthsOut}. Think like a trend agency + social listening platform + futures forecaster. Include:
 
-1. TRENDING MOMENTS: What is the internet, social media, and culture talking about this week? Specific viral moments, memes, controversies, conversations (name them specifically)
+1. TRENDING NOW: What is the internet, social media, and culture talking about THIS WEEK? Specific viral moments, memes, controversies, conversations — name them with real details.
 
-2. BIG CULTURAL EVENTS UPCOMING: Sports (leagues, championships, games), movies releasing, album drops, fashion weeks, award shows, holidays, cultural moments in the next 60 days. Be specific with names and dates where known.
+2. UPCOMING CULTURAL EVENTS (next 6 months, through ${sixMonthsOut}): Sports championships, tournaments, Olympics, World Cups. Movie and TV releases (blockbusters, cultural tentpoles). Album drops and tours. Fashion weeks. Award shows (Grammys, Oscars, VMAs, etc.). Holidays and cultural moments. Brand-relevant seasonal hooks. Be specific with names and dates.
 
-3. MACRO CULTURAL TENSIONS: What are the big cultural debates, anxieties, and movements right now? (e.g. anti-hustle, nostalgia revival, creator economy explosion, new tech excitement, abundance vs. simplicity, etc.) Include both anxieties AND aspirations — what are people excited about and rushing toward, not just what they fear?
+3. MACRO CULTURAL TENSIONS & ASPIRATIONS: What are the big cultural debates, movements, and collective desires right now? Include both anxieties AND what people are excited and rushing toward. Name specific movements, aesthetics, and cultural shifts.
 
-4. PLATFORM TRENDS: What formats and trends are exploding on TikTok, Instagram, YouTube, X right now?
+4. PLATFORM TRENDS: What formats and trends are exploding on TikTok, Instagram, YouTube, X, and emerging platforms right now? Name specific creators, sounds, formats.
 
-5. BRAND PARTNERSHIP LANDSCAPE: What brand collabs, celebrity partnerships, or co-branding moves are generating buzz? What categories are fertile ground for collabs?
+5. BRAND & COLLAB LANDSCAPE: What brand collabs, celebrity partnerships, and co-branding moves are generating buzz? What drops, launches, or campaigns are coming up in the next 6 months?
 
-6. EMERGING SUBCULTURES: What niche communities, aesthetics, or micro-trends are about to go mainstream?
+6. EMERGING SUBCULTURES & MICRO-TRENDS: What niche communities or aesthetics are about to go mainstream? What's the next big thing that brands haven't tapped yet?
 
-7. PRODUCT INNOVATION SIGNALS: What consumer behaviors, desires, or unmet needs are trending that could inspire product innovation?
+7. FUTURE SIGNALS: What cultural, tech, or behavioral shifts are building momentum that will peak in the next 3-6 months?
 
-Be specific. Name real events, real trends, real cultural figures. This is the raw material for Cannes-winning campaign ideas.`,
-      2000
-    );
+Search thoroughly. Name real events, real dates, real cultural figures. This feeds campaign idea generation for ${b.name}.`,
+        }],
+      }),
+    });
+    const culturalScanData = await culturalScanRaw.json();
+    const culturalScan = (culturalScanData.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || 'Cultural scan unavailable.';
 
     // ── PHASE 2.5: Award Intelligence Scan
     setStatus('<span class="pulse-dot"></span> Phase 3 of 5 · Scanning award-winning intelligence…');
