@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink:        #0c0c10;
@@ -55,7 +56,7 @@
   /* BRAND HERO */
   .brand-hero { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 2px solid var(--ink); }
   .brand-hero-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--signal); margin-bottom: 10px; }
-  .brand-hero-name { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -.025em; color: var(--ink); line-height: 1; margin-bottom: 10px; }
+  .brand-hero-name { font-family: 'Highrise', var(--sans); font-size: clamp(28px, 4vw, 44px); font-weight: 700; letter-spacing: .01em; color: var(--ink); line-height: 1; margin-bottom: 10px; }
   .brand-hero-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
 
   /* CONTEXT BLOCK */
@@ -384,11 +385,50 @@ function renderDropdown() {
     ids.map(id => `<option value="${id}"${activeBrandId===id?' selected':''}>${esc(brands[id].name||'Untitled')}</option>`).join('');
 }
 
+// ── BRAND COLOR
+async function fetchBrandColor(brand) {
+  const key = document.getElementById('apiKeyInput')?.value?.trim();
+  if (!key || brand.color) return; // already fetched or no key yet
+  try {
+    const raw = await claudeCall(
+      key,
+      `You are a brand design expert. Respond with only a valid hex color code — nothing else. No explanation, no #, just 6 hex digits.`,
+      `What is the single most recognizable primary brand color for ${brand.name}? Return only the 6-digit hex code (no #).`,
+      16
+    );
+    const hex = raw.trim().replace(/^#/, '').match(/^[0-9a-fA-F]{6}$/)?.[0];
+    if (hex) {
+      brand.color = '#' + hex;
+      // also compute a dim version (lighten toward white by mixing with #fff at 88%)
+      const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
+      const dim = [r,g,b2].map(c=>Math.round(c*0.18+255*0.82).toString(16).padStart(2,'0')).join('');
+      brand.colorDim = '#' + dim;
+      saveStore(brands);
+      applyBrandColor(brand);
+    }
+  } catch(e) { /* silent fail — keep default orange */ }
+}
+
+function applyBrandColor(brand) {
+  const root = document.documentElement;
+  if (brand && brand.color) {
+    root.style.setProperty('--signal', brand.color);
+    root.style.setProperty('--signal-dim', brand.colorDim || '#fce8e2');
+  } else {
+    root.style.setProperty('--signal', '#e8441a');
+    root.style.setProperty('--signal-dim', '#fce8e2');
+  }
+}
+
 // ── SELECT / NEW / DELETE BRAND
 window.selectBrand = function(id) {
   activeBrandId = id || null;
   renderDropdown();
   renderEditor();
+  if (activeBrandId && brands[activeBrandId]) {
+    applyBrandColor(brands[activeBrandId]);
+    fetchBrandColor(brands[activeBrandId]);
+  }
 };
 
 window.promptNewBrand = function() {
@@ -400,6 +440,8 @@ window.promptNewBrand = function() {
   activeBrandId = id;
   renderDropdown();
   renderEditor();
+  applyBrandColor(brands[id]);
+  fetchBrandColor(brands[id]);
 };
 
 // ── EDITOR
@@ -407,10 +449,13 @@ function renderEditor() {
   const editor = document.getElementById('brandEditor');
   const empty  = document.getElementById('emptyState');
   if (!activeBrandId || !brands[activeBrandId]) {
-    editor.classList.remove('visible'); empty.classList.remove('hidden'); return;
+    editor.classList.remove('visible'); empty.classList.remove('hidden');
+    applyBrandColor(null);
+    return;
   }
   empty.classList.add('hidden'); editor.classList.add('visible');
   const b = brands[activeBrandId];
+  applyBrandColor(b);
   document.getElementById('brandHeaderName').textContent = b.name || 'Untitled';
   const srcCount = (b.sources||[]).length;
   document.getElementById('brandHeaderMeta').textContent =
