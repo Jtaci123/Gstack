@@ -959,7 +959,11 @@ async function magnificCall(prompt) {
       'Content-Type': 'application/json',
       'X-Magnific-API-Key': key,
     },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({
+      prompt,
+      mode: 'imagen-nano-banana-2-flash', // Google Nano Banana 2, 1k default
+      resolution: '1k',
+    }),
   });
   if (!res.ok) throw new Error(`Magnific submit failed: ${res.status}`);
   const job = await res.json();
