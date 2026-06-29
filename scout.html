@@ -977,6 +977,7 @@ async function magnificCall(prompt) {
   if (!key) return null;
 
   // Submit generation job
+  console.log('[Magnific] Submitting job…');
   const res = await fetch('https://api.magnific.com/v1/ai/text-to-image', {
     method: 'POST',
     headers: {
@@ -985,14 +986,18 @@ async function magnificCall(prompt) {
     },
     body: JSON.stringify({
       prompt,
-      mode: 'imagen-nano-banana-2-flash', // Google Nano Banana 2, 1k default
+      mode: 'imagen-nano-banana-2-flash',
       resolution: '1k',
     }),
   });
-  if (!res.ok) throw new Error(`Magnific submit failed: ${res.status}`);
-  const job = await res.json();
-  const taskId = job.id || job.task_id || job.taskId;
-  if (!taskId) throw new Error('No task ID from Magnific');
+  const jobText = await res.text();
+  console.log('[Magnific] Submit response', res.status, jobText);
+  if (!res.ok) throw new Error(`Magnific submit failed: ${res.status} — ${jobText}`);
+  const job = JSON.parse(jobText);
+  const taskId = job.id || job.task_id || job.taskId || job.request_id || job.requestId;
+  if (!taskId) throw new Error(`No task ID from Magnific — got: ${jobText}`);
+
+  console.log('[Magnific] Task ID:', taskId);
 
   // Poll until complete (max ~90s)
   for (let attempt = 0; attempt < 18; attempt++) {
@@ -1000,14 +1005,19 @@ async function magnificCall(prompt) {
     const poll = await fetch(`https://api.magnific.com/v1/ai/text-to-image/${taskId}`, {
       headers: { 'X-Magnific-API-Key': key },
     });
+    const pollText = await poll.text();
+    console.log(`[Magnific] Poll #${attempt + 1}`, poll.status, pollText);
     if (!poll.ok) continue;
-    const data = await poll.json();
-    if (data.status === 'completed' || data.status === 'done') {
-      return data.url || data.image_url || data.output_url || null;
+    const data = JSON.parse(pollText);
+    const status = (data.status || '').toLowerCase();
+    if (['completed', 'done', 'success', 'finished'].includes(status)) {
+      const imgUrl = data.url || data.image_url || data.output_url || data.result?.url || data.result?.image_url || data.images?.[0]?.url || data.images?.[0];
+      console.log('[Magnific] Done! Image URL:', imgUrl);
+      return imgUrl || null;
     }
-    if (data.status === 'failed') throw new Error('Magnific generation failed');
+    if (['failed', 'error', 'cancelled'].includes(status)) throw new Error(`Magnific generation failed: ${pollText}`);
   }
-  throw new Error('Magnific timed out');
+  throw new Error('Magnific timed out after 90s');
 }
 
 window.open1Pager = async function(i) {
@@ -1157,14 +1167,17 @@ window.open1Pager = async function(i) {
         w.document.querySelector('.right').appendChild(badge);
       }
     } catch(e) {
-      // Fallback to picsum if Magnific fails
+      console.error('[Magnific] Error:', e.message);
       if (!w.closed) {
         const loading = w.document.querySelector('.img-loading');
         if (loading) {
+          // Show error text then fall back to picsum after 3s
+          loading.querySelector('.img-loading-text').textContent = 'Image failed: ' + e.message.slice(0, 80);
+          await new Promise(r => setTimeout(r, 3000));
           const img = w.document.createElement('img');
           img.className = 'hero-img';
           img.src = heroImg;
-          loading.replaceWith(img);
+          if (!w.closed) loading.replaceWith(img);
         }
       }
     }
