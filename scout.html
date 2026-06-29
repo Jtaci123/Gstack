@@ -96,6 +96,14 @@
   .brand-hero-name { font-family: 'Highrise', var(--sans); font-size: clamp(28px, 4vw, 44px); font-weight: 700; letter-spacing: .01em; color: var(--ink-strong); line-height: 1; margin-bottom: 10px; }
   .brand-hero-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
 
+  /* BRAND FOCUS */
+  .brand-focus-block { margin-bottom: 20px; }
+  .brand-focus-label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--signal); margin-bottom: 8px; }
+  .brand-focus-hint { color: var(--muted); text-transform: none; letter-spacing: 0; font-size: 10px; }
+  .brand-focus-input { width: 100%; background: var(--glass); border: 1px solid var(--rule); border-radius: 10px; color: var(--ink); font-family: var(--sans); font-size: 13px; line-height: 1.5; padding: 10px 14px; resize: vertical; outline: none; transition: border-color .15s; }
+  .brand-focus-input:focus { border-color: var(--signal); }
+  .brand-focus-input::placeholder { color: var(--muted); }
+
   /* CONTEXT BLOCK — frosted glass */
   .context-block { border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 32px; overflow: hidden; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .context-block-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; transition: background .15s; }
@@ -297,6 +305,12 @@
         <div class="brand-hero-eyebrow">Brand</div>
         <h1 class="brand-hero-name" id="brandHeaderName"></h1>
         <div class="brand-hero-sub" id="brandHeaderMeta"></div>
+      </div>
+
+      <!-- BRAND FOCUS -->
+      <div class="brand-focus-block">
+        <label class="brand-focus-label" for="brandFocusInput">Brand Focus <span class="brand-focus-hint">— optional: steer Scout's attention (products, sub-brands, audiences, territories to avoid)</span></label>
+        <textarea class="brand-focus-input" id="brandFocusInput" rows="2" placeholder="e.g. Focus on Ring Pop, Juicy Drop, Push Pop, and Wandr — not Bazooka Gum. Target Gen Z nostalgia and Gen Alpha." oninput="saveBrandFocus()"></textarea>
       </div>
 
       <!-- CONTEXT BLOCK -->
@@ -534,6 +548,7 @@ function renderEditor() {
   const srcCount = (b.sources||[]).length;
   document.getElementById('brandHeaderMeta').textContent =
     b.url ? b.url : (srcCount ? `${srcCount} source${srcCount!==1?'s':''}` : 'No extra sources · Scout uses its own brand knowledge');
+  document.getElementById('brandFocusInput').value = b.focus || '';
   document.getElementById('results').classList.remove('visible');
   renderSources();
 }
@@ -570,6 +585,13 @@ window.removeSource = function(i) {
   brands[activeBrandId].sources.splice(i,1);
   saveStore(brands);
   renderSources();
+};
+
+// ── BRAND FOCUS
+window.saveBrandFocus = function() {
+  if (!activeBrandId || !brands[activeBrandId]) return;
+  brands[activeBrandId].focus = document.getElementById('brandFocusInput').value;
+  saveStore(brands);
 };
 
 // ── SAVE (unused stub kept for compat)
@@ -727,6 +749,9 @@ window.runScout = async function() {
   const extraDocs = ready.length
     ? `\n\nADDITIONAL BRAND DOCUMENTS PROVIDED:\n${ready.map((s,i)=>`--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,4000)}`).join('\n\n')}`
     : '';
+  const focusNote = b.focus?.trim()
+    ? `\n\nBRAND FOCUS DIRECTIVE (follow this precisely):\n${b.focus.trim()}`
+    : '';
 
   try {
     // ── PHASE 1: Brand Intelligence (from Claude's knowledge + optional docs)
@@ -744,7 +769,7 @@ Using your knowledge of ${b.name}, build a complete brand brief:
 4. CULTURAL EQUITY: What cultural moments, subcultures, aesthetics, or movements this brand authentically owns or can credibly enter
 5. RECENT TERRITORY: Notable campaigns, activations, collabs, or cultural moves this brand has made in the last 1-2 years
 6. WHITE SPACE: Where this brand hasn't played yet — the untapped territory
-7. HARD RULES: What this brand must never do${extraDocs}
+7. HARD RULES: What this brand must never do${focusNote}${extraDocs}
 
 Be direct, specific, and honest. This brief feeds idea generation.`,
       1500
@@ -773,7 +798,7 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
         system: `You are a cultural intelligence analyst and trend forecaster at a top creative agency. Search the web to surface what is ACTUALLY happening right now and what is coming up — real dates, real events, real viral moments. Prioritize recency and specificity over generality.`,
         messages: [{
           role: 'user',
-          content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.
+          content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.${focusNote}
 
 Search the web and produce a comprehensive live cultural scan from NOW through ${sixMonthsOut}. Think like a trend agency + social listening platform + futures forecaster. Include:
 
@@ -835,7 +860,7 @@ Before any idea lands, ask: Is this already in the category? Is this just polish
     const ideasRaw = await claudeCall(
       apiKey,
       `You are a world-class creative director, CMO, and brand strategist who has won at Cannes and built culturally resonant campaigns. ${BARRY_PRINCIPLES}`,
-      `Generate exactly ${count} campaign ideas for ${b.name} that connect the brand to what is happening in culture RIGHT NOW.
+      `Generate exactly ${count} campaign ideas for ${b.name} that connect the brand to what is happening in culture RIGHT NOW.${focusNote}
 
 ═══ BRAND INTELLIGENCE ═══
 ${brandIntel}
