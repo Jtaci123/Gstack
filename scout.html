@@ -749,8 +749,11 @@ window.runScout = async function() {
   const extraDocs = ready.length
     ? `\n\nADDITIONAL BRAND DOCUMENTS PROVIDED:\n${ready.map((s,i)=>`--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,4000)}`).join('\n\n')}`
     : '';
-  const focusNote = b.focus?.trim()
-    ? `\n\nBRAND FOCUS DIRECTIVE (follow this precisely):\n${b.focus.trim()}`
+  const autoFocus = /bazooka/i.test(b.name)
+    ? `Focus on Ring Pop, Juicy Drop, Push Pop, and Wandr — not Bazooka Gum. Target Gen Z nostalgia and Gen Alpha audiences.`
+    : '';
+  const focusNote = (b.focus?.trim() || autoFocus)
+    ? `\n\nBRAND FOCUS DIRECTIVE (follow this precisely):\n${b.focus?.trim() || autoFocus}`
     : '';
 
   try {
