@@ -34,7 +34,23 @@
     font-family: var(--sans);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
+
+  /* ── SIGNAL WAVE CANVAS */
+  #waveCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 1;
+  }
+
+  /* everything above the canvas */
+  .masthead, .shell { position: relative; z-index: 1; }
+
   /* subtle ambient glow top */
   body::before {
     content: '';
@@ -97,7 +113,7 @@
   .brand-hero-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
 
   /* CONTEXT BLOCK — frosted glass */
-  .context-block { border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 32px; overflow: hidden; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .context-block { border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 32px; overflow: hidden; background: rgba(31,31,45,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .context-block-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; transition: background .15s; }
   .context-block-header:hover { background: rgba(255,255,255,0.04); }
   .context-block-title { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
@@ -160,7 +176,7 @@
   .cta-secondary:hover { border-color: var(--rule-hi); color: var(--ink); }
 
   /* RUN STRIP — frosted glass */
-  .run-strip { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .run-strip { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: rgba(31,31,45,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .run-strip select { border: none; border-right: 1px solid var(--rule); padding: 0 16px; font-family: var(--mono); font-size: 11px; color: var(--muted); background: transparent; outline: none; height: 52px; cursor: pointer; letter-spacing: .05em; }
   .run-btn { flex: 1; padding: 0 32px; background: var(--signal); border: none; color: #fff; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; height: 52px; white-space: nowrap; transition: opacity .15s; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .run-btn:hover { opacity: .88; }
@@ -185,7 +201,7 @@
   .brief-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
 
   /* IDEA CARDS — frosted glass */
-  .idea-card { border: 1px solid var(--glass-b); border-radius: 14px; margin-bottom: 12px; overflow: hidden; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: border-color .2s, box-shadow .2s; }
+  .idea-card { border: 1px solid var(--glass-b); border-radius: 14px; margin-bottom: 12px; overflow: hidden; background: rgba(31,31,45,0.68); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color .2s, box-shadow .2s; }
   .idea-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
   .idea-header { display: flex; align-items: stretch; border-bottom: 1px solid var(--rule); }
   .idea-rank { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #fff; background: var(--rule-hi); width: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -263,6 +279,8 @@
 </style>
 </head>
 <body>
+
+<canvas id="waveCanvas"></canvas>
 
 <header class="masthead">
   <div class="masthead-left">
@@ -1582,6 +1600,78 @@ window.toggleContext = function() {
 // ── INIT
 renderDropdown();
 renderEditor();
+</script>
+
+<script>
+// ── SIGNAL WAVE BACKGROUND
+(function() {
+  const canvas = document.getElementById('waveCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Wave configs — each has independent speed, amplitude, frequency, phase offset, opacity
+  const waves = [
+    { speed: 0.00018, amp: 38,  freq: 0.0028, phase: 0,    opacity: 0.13, width: 1.2, yRatio: 0.38 },
+    { speed: 0.00012, amp: 55,  freq: 0.0018, phase: 1.6,  opacity: 0.07, width: 1.8, yRatio: 0.55 },
+    { speed: 0.00022, amp: 24,  freq: 0.0042, phase: 3.2,  opacity: 0.10, width: 0.9, yRatio: 0.68 },
+    { speed: 0.00009, amp: 70,  freq: 0.0012, phase: 0.8,  opacity: 0.05, width: 2.2, yRatio: 0.25 },
+    { speed: 0.00028, amp: 18,  freq: 0.0058, phase: 4.5,  opacity: 0.08, width: 0.7, yRatio: 0.80 },
+  ];
+
+  // Pulse envelope — global breathe effect
+  let pulseT = 0;
+
+  function getSignalColor() {
+    const s = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#06e3fc';
+    // Parse hex to r,g,b
+    const m = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+    if (m) return `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`;
+    return '6,227,252';
+  }
+
+  let lastColor = getSignalColor();
+  let colorCheckT = 0;
+
+  function draw(ts) {
+    requestAnimationFrame(draw);
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Refresh signal color every ~60 frames (brand switch)
+    colorCheckT++;
+    if (colorCheckT > 60) { lastColor = getSignalColor(); colorCheckT = 0; }
+
+    // Slow global pulse (breathe)
+    pulseT += 0.0008;
+    const breathe = 0.7 + 0.3 * Math.sin(pulseT);
+
+    for (const w of waves) {
+      const baseY = H * w.yRatio;
+      const phaseShift = ts * w.speed;
+      const amp = w.amp * breathe;
+
+      ctx.beginPath();
+      ctx.moveTo(0, baseY + Math.sin(w.phase + phaseShift) * amp);
+
+      for (let x = 1; x <= W; x += 3) {
+        const y = baseY + Math.sin(w.freq * x + w.phase + phaseShift) * amp;
+        ctx.lineTo(x, y);
+      }
+
+      ctx.strokeStyle = `rgba(${lastColor},${w.opacity * breathe})`;
+      ctx.lineWidth = w.width;
+      ctx.stroke();
+    }
+  }
+
+  requestAnimationFrame(draw);
+})();
 </script>
 </body>
 </html>
