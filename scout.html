@@ -422,6 +422,11 @@ let activeBrandId = null;
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
+// Migrate old brand names
+for (const b of Object.values(brands)) {
+  if (b.name === 'Bazooka Candy Brands') b.name = 'Bazooka Brands';
+}
+
 // Seed default brands if not already present
 for (const def of DEFAULT_BRANDS) {
   if (!brands[def.id]) {
