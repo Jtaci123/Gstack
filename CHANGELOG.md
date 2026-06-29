@@ -6,6 +6,13 @@
 
 ---
 
+## 2026-06-29 (update)
+
+### Changed
+- **Brand color via web search** — `fetchBrandColor` now uses Claude's `web_search` tool to find the brand's official hex color from the internet instead of relying on training-data recall. Color is cached in localStorage so the lookup fires only once per brand.
+
+---
+
 ## 2026-06-29
 
 ### Added
