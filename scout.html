@@ -237,6 +237,15 @@
   .btn-pager { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 14px; border: 1px solid var(--rule-hi); background: rgba(255,255,255,0.04); color: var(--ink); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
   .btn-pager:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
+  /* HISTORY */
+  .history-empty { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 4px 0; }
+  .history-row { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: background .15s; border-bottom: 1px solid var(--rule); }
+  .history-row:last-child { border-bottom: none; }
+  .history-row:hover { background: var(--glass-b); }
+  .history-date { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .06em; white-space: nowrap; }
+  .history-count { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .history-preview { font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   /* SOURCE LOG */
   .source-log-toggle { margin-top: 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: none; background: none; padding: 0; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; transition: color .15s; }
   .source-log-toggle:hover { color: var(--ink); }
@@ -351,6 +360,20 @@
 
       <div class="status-bar" id="statusBar"></div>
       <div class="error-bar" id="errorBar"></div>
+
+      <!-- GENERATION HISTORY -->
+      <div class="context-block" id="historyBlock" style="margin-bottom:32px;">
+        <div class="context-block-header" onclick="toggleHistory()">
+          <div class="context-block-title">
+            <span class="context-icon" id="historyIcon">+</span>
+            Past Generations
+          </div>
+          <div class="context-block-note">click any run to restore it</div>
+        </div>
+        <div id="historyBody" style="display:none;">
+          <div id="historyList" style="padding:12px 18px 16px;"></div>
+        </div>
+      </div>
 
       <!-- RESULTS -->
       <div class="results" id="results">
@@ -592,6 +615,8 @@ function renderEditor() {
   document.getElementById('brandHeaderMeta').textContent =
     b.url ? b.url : (srcCount ? `${srcCount} source${srcCount!==1?'s':''}` : 'No extra sources · Scout uses its own brand knowledge');
   document.getElementById('results').classList.remove('visible');
+  document.getElementById('historyBody').style.display = 'none';
+  document.getElementById('historyIcon').textContent = '+';
   renderSources();
 }
 
@@ -1041,6 +1066,7 @@ Return ONLY the JSON array, no markdown.`,
     document.getElementById('sourceLog').textContent =
       `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}\n\n═══ PHASE 2.5: AWARD INTELLIGENCE ═══\n\n${awardIntel}`;
 
+    saveGeneration(b, ideas);
     renderIdeas(ideas, b.name);
     clearStatus();
   } catch(e) {
@@ -1053,6 +1079,66 @@ function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid'
 // Store last generated ideas so 1-pager buttons can reference by index safely
 let _lastIdeas = [];
 let _lastBrand = '';
+
+// ── GENERATION HISTORY
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem('scout_history') || '[]'); } catch { return []; }
+}
+function saveHistory(h) { localStorage.setItem('scout_history', JSON.stringify(h)); }
+
+function saveGeneration(brand, ideas) {
+  const h = loadHistory();
+  h.unshift({
+    id: genId(),
+    brandId: brand.id,
+    brandName: brand.name,
+    date: new Date().toISOString(),
+    ideas,
+  });
+  // Keep last 50 runs total
+  saveHistory(h.slice(0, 50));
+  renderHistory();
+}
+
+function renderHistory() {
+  if (!activeBrandId) return;
+  const h = loadHistory().filter(r => r.brandId === activeBrandId);
+  const wrap = document.getElementById('historyList');
+  if (!wrap) return;
+  if (!h.length) { wrap.innerHTML = '<div class="history-empty">No past generations yet.</div>'; return; }
+  wrap.innerHTML = h.map(r => {
+    const d = new Date(r.date);
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return `<div class="history-row" onclick="restoreGeneration('${r.id}')">
+      <span class="history-date">${label}</span>
+      <span class="history-count">${r.ideas.length} ideas</span>
+      <span class="history-preview">${esc(r.ideas[0]?.headline || '')}</span>
+    </div>`;
+  }).join('');
+}
+
+window.restoreGeneration = function(id) {
+  const h = loadHistory();
+  const run = h.find(r => r.id === id);
+  if (!run) return;
+  renderIdeas(run.ideas, run.brandName);
+  const d = new Date(run.date);
+  document.getElementById('briefMeta').textContent =
+    'Restored · ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  document.getElementById('results').classList.add('visible');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.toggleHistory = function() {
+  const body = document.getElementById('historyBody');
+  const icon = document.getElementById('historyIcon');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  icon.textContent = open ? '+' : '−';
+  if (!open) renderHistory();
+};
 
 // ── MAGNIFIC IMAGE GENERATION
 async function magnificCall(prompt) {
