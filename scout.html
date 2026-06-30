@@ -859,7 +859,7 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
     // ── PHASE 2: Cultural Scan (live web search)
     setStatus('<span class="pulse-dot"></span> Phase 2 of 5 · Scanning live cultural signals…');
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    const sixMonthsOut = new Date(Date.now() + 183 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const sixMonthsOut = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     const culturalScanRaw = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -881,21 +881,21 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
           role: 'user',
           content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.${focusNote}
 
-Search the web and produce a comprehensive live cultural scan from NOW through ${sixMonthsOut}. Think like a trend agency + social listening platform + futures forecaster. Include:
+Search the web and produce a comprehensive live cultural scan from NOW through ${sixMonthsOut} (the next 12 months). Think like a trend agency + social listening platform + futures forecaster. Include:
 
 1. TRENDING NOW: What is the internet, social media, and culture talking about THIS WEEK? Specific viral moments, memes, controversies, conversations — name them with real details.
 
-2. UPCOMING CULTURAL EVENTS (next 6 months, through ${sixMonthsOut}): Sports championships, tournaments, Olympics, World Cups. Movie and TV releases (blockbusters, cultural tentpoles). Album drops and tours. Fashion weeks. Award shows (Grammys, Oscars, VMAs, etc.). Holidays and cultural moments. Brand-relevant seasonal hooks. Be specific with names and dates.
+2. UPCOMING CULTURAL EVENTS (next 12 months, through ${sixMonthsOut}): Sports championships, tournaments, Olympics, World Cups. Movie and TV releases (blockbusters, cultural tentpoles). Album drops and tours. Fashion weeks. Award shows (Grammys, Oscars, VMAs, etc.). Holidays and cultural moments. Brand-relevant seasonal hooks. Be specific with names and dates.
 
 3. MACRO CULTURAL TENSIONS & ASPIRATIONS: What are the big cultural debates, movements, and collective desires right now? Include both anxieties AND what people are excited and rushing toward. Name specific movements, aesthetics, and cultural shifts.
 
 4. PLATFORM TRENDS: What formats and trends are exploding on TikTok, Instagram, YouTube, X, and emerging platforms right now? Name specific creators, sounds, formats.
 
-5. BRAND & COLLAB LANDSCAPE: What brand collabs, celebrity partnerships, and co-branding moves are generating buzz? What drops, launches, or campaigns are coming up in the next 6 months?
+5. BRAND & COLLAB LANDSCAPE: What brand collabs, celebrity partnerships, and co-branding moves are generating buzz? What drops, launches, or campaigns are coming up in the next 12 months?
 
 6. EMERGING SUBCULTURES & MICRO-TRENDS: What niche communities or aesthetics are about to go mainstream? What's the next big thing that brands haven't tapped yet?
 
-7. FUTURE SIGNALS: What cultural, tech, or behavioral shifts are building momentum that will peak in the next 3-6 months?
+7. FUTURE SIGNALS: What cultural, tech, or behavioral shifts are building momentum that will peak in the next 6-12 months?
 
 Search thoroughly. Name real events, real dates, real cultural figures. This feeds campaign idea generation for ${b.name}.`,
         }],
