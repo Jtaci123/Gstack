@@ -276,9 +276,85 @@
     .main { padding: 24px 20px 60px; }
     .idea-body { grid-template-columns: 1fr; padding-left: 18px; }
   }
+
+  /* VISUAL GUIDANCE MODAL */
+  .vg-overlay { display: none; position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
+  .vg-overlay.visible { display: flex; }
+  .vg-modal { background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 16px; padding: 32px; width: min(540px, calc(100vw - 40px)); display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.6); }
+  .vg-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--signal); }
+  .vg-title { font-size: 18px; font-weight: 700; color: var(--ink-strong); line-height: 1.2; }
+  .vg-sub { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .vg-input-row { display: flex; gap: 8px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--paper); transition: border-color .15s; }
+  .vg-input-row:focus-within { border-color: var(--signal); }
+  .vg-input { flex: 1; border: none; padding: 12px 14px; font-family: var(--sans); font-size: 13px; color: var(--ink); background: transparent; outline: none; resize: none; min-height: 60px; }
+  .vg-input::placeholder { color: var(--ghost); }
+  .vg-mic { border: none; border-left: 1px solid var(--rule); padding: 0 16px; background: transparent; cursor: pointer; color: var(--muted); transition: color .15s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .vg-mic:hover { color: var(--ink); }
+  .vg-mic.listening { color: var(--signal); animation: pulse 1.2s ease-in-out infinite; }
+  .vg-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .vg-skip { font-family: var(--mono); font-size: 10px; color: var(--ghost); letter-spacing: .1em; text-transform: uppercase; background: none; border: none; cursor: pointer; transition: color .15s; }
+  .vg-skip:hover { color: var(--muted); }
+  .vg-generate { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; padding: 12px 28px; background: var(--signal); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; transition: opacity .15s; }
+  .vg-generate:hover { opacity: .85; }
+
+  /* SESSION HISTORY DROPDOWN */
+  .session-dropdown-wrap { position: relative; }
+  .session-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; transition: background .15s; }
+  .session-btn:hover { background: var(--glass); }
+  .session-caret { font-size: 9px; color: var(--ghost); transition: transform .15s; }
+  .session-btn.open .session-caret { transform: rotate(180deg); }
+  .session-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 280px; background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); z-index: 200; overflow: hidden; }
+  .session-menu.open { display: block; }
+  .session-menu-header { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 12px 16px 8px; border-bottom: 1px solid var(--rule); }
+  .session-group-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--ghost); padding: 10px 16px 4px; }
+  .session-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--rule); gap: 12px; }
+  .session-item:last-child { border-bottom: none; }
+  .session-item:hover { background: var(--glass); }
+  .session-item-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .session-item-brand { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .session-item-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .04em; }
+  .session-item-count { font-family: var(--mono); font-size: 9px; color: var(--signal); white-space: nowrap; flex-shrink: 0; }
+  .session-empty { font-family: var(--mono); font-size: 10px; color: var(--ghost); padding: 16px; text-align: center; }
+
+  /* 1-PAGER LIGHTBOX */
+  .pager-overlay { display: none; position: fixed; inset: 0; z-index: 300; background: #000; }
+  .pager-overlay.visible { display: block; }
+  .pager-close { position: absolute; top: 14px; right: 18px; z-index: 10; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); background: rgba(0,0,0,0.7); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 16px; cursor: pointer; transition: all .15s; }
+  .pager-close:hover { color: var(--ink); border-color: var(--rule-hi); }
+  .pager-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); border: none; border-radius: 6px; aspect-ratio: 16/9; width: min(calc(100vw - 40px), calc((100vh - 56px) * 16 / 9)); max-width: 1600px; }
 </style>
 </head>
 <body>
+
+<!-- VISUAL GUIDANCE MODAL -->
+<div class="vg-overlay" id="vgOverlay">
+  <div class="vg-modal">
+    <div class="vg-eyebrow">Generate 1-Pager · Visual Guidance</div>
+    <div class="vg-title">Any additional visual direction?</div>
+    <div class="vg-sub">Describe what you'd like to see in the image — mood, setting, subject, style. Leave blank and Scout will interpret the idea visually.</div>
+    <div class="vg-input-row">
+      <textarea class="vg-input" id="vgInput" placeholder="e.g. July 4th fireworks over a crowded beach, phones held up recording…" rows="2"></textarea>
+      <button class="vg-mic" id="vgMic" title="Speak your direction" onclick="toggleVgMic()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0 0 14 0"/>
+          <line x1="12" y1="17" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </button>
+    </div>
+    <div class="vg-actions">
+      <button class="vg-skip" onclick="submitVg(true)">Skip → let Scout decide</button>
+      <button class="vg-generate" onclick="submitVg(false)">Generate Image →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 1-PAGER LIGHTBOX -->
+<div class="pager-overlay" id="pagerOverlay">
+  <button class="pager-close" onclick="closePager()">✕ Close</button>
+  <iframe class="pager-frame" id="pagerFrame"></iframe>
+</div>
 
 <canvas id="waveCanvas"></canvas>
 
@@ -295,12 +371,16 @@
       </select>
       <button class="new-brand-btn" onclick="promptNewBrand()">+ Add Brand</button>
     </div>
-    <span class="dateline" id="dateline"></span>
+    <div class="session-dropdown-wrap" id="sessionDropdownWrap">
+      <button class="session-btn" id="sessionBtn" onclick="toggleSessionMenu()">
+        <span id="dateline"></span>
+        <span class="session-caret">▾</span>
+      </button>
+      <div class="session-menu" id="sessionMenu"></div>
+    </div>
   </div>
-  <div class="masthead-right">
-    <span class="key-label">Magnific</span>
-    <input type="password" class="key-input" id="magnificKey" placeholder="Magnific API key…" style="width:160px;" />
-    <span class="key-label" style="margin-left:8px;">Anthropic</span>
+  <div class="masthead-right" id="apiKeyWrap">
+    <span class="key-label">API Key</span>
     <input type="password" class="key-input" id="apiKey" placeholder="sk-ant-api03-..." />
   </div>
 </header>
@@ -379,20 +459,6 @@
       <div class="status-bar" id="statusBar"></div>
       <div class="error-bar" id="errorBar"></div>
 
-      <!-- GENERATION HISTORY -->
-      <div class="context-block" id="historyBlock" style="margin-bottom:32px;">
-        <div class="context-block-header" onclick="toggleHistory()">
-          <div class="context-block-title">
-            <span class="context-icon" id="historyIcon">+</span>
-            Past Generations
-          </div>
-          <div class="context-block-note">click any run to restore it</div>
-        </div>
-        <div id="historyBody" style="display:none;">
-          <div id="historyList" style="padding:12px 18px 16px;"></div>
-        </div>
-      </div>
-
       <!-- RESULTS -->
       <div class="results" id="results">
         <div class="brief-header">
@@ -408,6 +474,7 @@
   </main>
 </div>
 
+<script src="api-keys.js"></script>
 <script type="module">
 // ── dateline
 document.getElementById('dateline').textContent =
@@ -441,18 +508,93 @@ function loadStore() {
 }
 function saveStore(store) { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
 
+// ── SESSION HISTORY
+const SESSIONS_KEY = 'scout_sessions';
+function loadSessions() {
+  try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
+}
+function saveSession(session) {
+  const sessions = loadSessions();
+  sessions.unshift(session);
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions.slice(0, 200)));
+}
+
+function renderSessionMenu() {
+  const sessions = loadSessions();
+  const menu = document.getElementById('sessionMenu');
+  if (!sessions.length) {
+    menu.innerHTML = '<div class="session-empty">No saved sessions yet.<br>Run Scout to generate ideas.</div>';
+    return;
+  }
+  const groups = {};
+  sessions.forEach(s => {
+    const d = s.date || 'Unknown';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(s);
+  });
+  const todayLabel = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const yesterdayLabel = new Date(Date.now()-864e5).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  menu.innerHTML = '<div class="session-menu-header">Session History</div>' +
+    Object.entries(groups).map(([date, list]) => {
+      const label = date === todayLabel ? 'Today' : date === yesterdayLabel ? 'Yesterday' : date;
+      return `<div class="session-group-label">${label}</div>` +
+        list.map(s => `
+          <div class="session-item" onclick="loadSession('${s.id}')">
+            <div class="session-item-left">
+              <div class="session-item-brand">${esc(s.brandName)}</div>
+              <div class="session-item-meta">${s.time || ''}</div>
+            </div>
+            <div class="session-item-count">${s.ideas.length} ideas</div>
+          </div>`).join('');
+    }).join('');
+}
+
+window.toggleSessionMenu = function() {
+  const menu = document.getElementById('sessionMenu');
+  const btn  = document.getElementById('sessionBtn');
+  const isOpen = menu.classList.contains('open');
+  if (!isOpen) renderSessionMenu();
+  menu.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+};
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('sessionDropdownWrap').contains(e.target)) {
+    document.getElementById('sessionMenu').classList.remove('open');
+    document.getElementById('sessionBtn').classList.remove('open');
+  }
+});
+
+window.loadSession = function(id) {
+  const session = loadSessions().find(s => s.id === id);
+  if (!session) return;
+  document.getElementById('sessionMenu').classList.remove('open');
+  document.getElementById('sessionBtn').classList.remove('open');
+  if (session.brandId && brands[session.brandId]) {
+    activeBrandId = session.brandId;
+    renderDropdown();
+    renderEditor();
+  }
+  if (session.sourceLog) {
+    document.getElementById('sourceLog').textContent = session.sourceLog;
+  }
+  renderIdeas(session.ideas, session.brandName);
+};
+
 // ── DEFAULT BRANDS (seeded on first load)
 const DEFAULT_BRANDS = [
   {
     id: 'bazooka',
     name: 'Bazooka Brands',
     url: 'https://www.bazookacandybrands.com/about-us/',
+    color: '#e8441a', colorDim: 'rgba(232,68,26,0.12)',
     sources: []
   },
   {
     id: 'otterbox',
     name: 'OtterBox',
     url: 'https://www.otterbox.com/',
+    color: '#f5be4c', colorDim: 'rgba(245,190,76,0.12)',
     sources: []
   },
 ];
@@ -468,10 +610,14 @@ for (const b of Object.values(brands)) {
   if (b.name === 'Bazooka Candy Brands') b.name = 'Bazooka Brands';
 }
 
-// Seed default brands if not already present
+// Seed default brands; always refresh color from defaults so corrections propagate
 for (const def of DEFAULT_BRANDS) {
   if (!brands[def.id]) {
     brands[def.id] = { id: def.id, name: def.name, url: def.url, sources: [] };
+  }
+  if (def.color) {
+    brands[def.id].color    = def.color;
+    brands[def.id].colorDim = def.colorDim;
   }
 }
 saveStore(brands);
@@ -633,8 +779,6 @@ function renderEditor() {
   document.getElementById('brandHeaderMeta').textContent =
     b.url ? b.url : (srcCount ? `${srcCount} source${srcCount!==1?'s':''}` : 'No extra sources · Scout uses its own brand knowledge');
   document.getElementById('results').classList.remove('visible');
-  document.getElementById('historyBody').style.display = 'none';
-  document.getElementById('historyIcon').textContent = '+';
   renderSources();
 }
 
@@ -1081,10 +1225,10 @@ Return ONLY the JSON array, no markdown.`,
       });
     }
 
-    document.getElementById('sourceLog').textContent =
-      `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}\n\n═══ PHASE 2.5: AWARD INTELLIGENCE ═══\n\n${awardIntel}`;
+    const sourceLogText = `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}\n\n═══ PHASE 2.5: AWARD INTELLIGENCE ═══\n\n${awardIntel}`;
+    document.getElementById('sourceLog').textContent = sourceLogText;
 
-    saveGeneration(b, ideas);
+    saveGeneration(b, ideas, sourceLogText);
     renderIdeas(ideas, b.name);
     clearStatus();
   } catch(e) {
@@ -1098,300 +1242,149 @@ function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid'
 let _lastIdeas = [];
 let _lastBrand = '';
 
-// ── GENERATION HISTORY
-function loadHistory() {
-  try { return JSON.parse(localStorage.getItem('scout_history') || '[]'); } catch { return []; }
-}
-function saveHistory(h) { localStorage.setItem('scout_history', JSON.stringify(h)); }
-
-function saveGeneration(brand, ideas) {
-  const h = loadHistory();
-  h.unshift({
+// ── GENERATION SAVE (to session history)
+function saveGeneration(brand, ideas, sourceLogText) {
+  const now = new Date();
+  saveSession({
     id: genId(),
     brandId: brand.id,
     brandName: brand.name,
-    date: new Date().toISOString(),
+    date: now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),
+    time: now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
     ideas,
+    sourceLog: sourceLogText,
   });
-  // Keep last 50 runs total
-  saveHistory(h.slice(0, 50));
-  renderHistory();
 }
 
-function renderHistory() {
-  if (!activeBrandId) return;
-  const h = loadHistory().filter(r => r.brandId === activeBrandId);
-  const wrap = document.getElementById('historyList');
-  if (!wrap) return;
-  if (!h.length) { wrap.innerHTML = '<div class="history-empty">No past generations yet.</div>'; return; }
-  wrap.innerHTML = h.map(r => {
-    const d = new Date(r.date);
-    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    return `<div class="history-row" onclick="restoreGeneration('${r.id}')">
-      <span class="history-date">${label}</span>
-      <span class="history-count">${r.ideas.length} ideas</span>
-      <span class="history-preview">${esc(r.ideas[0]?.headline || '')}</span>
-    </div>`;
-  }).join('');
-}
+// ── VISUAL GUIDANCE MODAL
+let _vgResolve = null;
 
-window.restoreGeneration = function(id) {
-  const h = loadHistory();
-  const run = h.find(r => r.id === id);
-  if (!run) return;
-  renderIdeas(run.ideas, run.brandName);
-  const d = new Date(run.date);
-  document.getElementById('briefMeta').textContent =
-    'Restored · ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-  document.getElementById('results').classList.add('visible');
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
-
-window.toggleHistory = function() {
-  const body = document.getElementById('historyBody');
-  const icon = document.getElementById('historyIcon');
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  icon.textContent = open ? '+' : '−';
-  if (!open) renderHistory();
-};
-
-// ── MAGNIFIC IMAGE GENERATION
-async function magnificCall(prompt) {
-  const key = document.getElementById('magnificKey')?.value?.trim();
-  if (!key) return null;
-
-  // Submit generation job
-  console.log('[Magnific] Submitting job…');
-  const res = await fetch('https://api.magnific.com/v1/ai/text-to-image', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Magnific-API-Key': key,
-    },
-    body: JSON.stringify({
-      prompt,
-      mode: 'imagen-nano-banana-2-flash',
-      resolution: '1k',
-    }),
-  });
-  const jobText = await res.text();
-  console.log('[Magnific] Submit response', res.status, jobText);
-  if (!res.ok) throw new Error(`Magnific submit failed: ${res.status} — ${jobText}`);
-  const job = JSON.parse(jobText);
-  const taskId = job.id || job.task_id || job.taskId || job.request_id || job.requestId;
-  if (!taskId) throw new Error(`No task ID from Magnific — got: ${jobText}`);
-
-  console.log('[Magnific] Task ID:', taskId);
-
-  // Poll until complete (max ~90s)
-  for (let attempt = 0; attempt < 18; attempt++) {
-    await new Promise(r => setTimeout(r, 5000));
-    const poll = await fetch(`https://api.magnific.com/v1/ai/text-to-image/${taskId}`, {
-      headers: { 'X-Magnific-API-Key': key },
-    });
-    const pollText = await poll.text();
-    console.log(`[Magnific] Poll #${attempt + 1}`, poll.status, pollText);
-    if (!poll.ok) continue;
-    const data = JSON.parse(pollText);
-    const status = (data.status || '').toLowerCase();
-    if (['completed', 'done', 'success', 'finished'].includes(status)) {
-      const imgUrl = data.url || data.image_url || data.output_url || data.result?.url || data.result?.image_url || data.images?.[0]?.url || data.images?.[0];
-      console.log('[Magnific] Done! Image URL:', imgUrl);
-      return imgUrl || null;
+window.toggleVgMic = function() {
+  const mic = document.getElementById('vgMic');
+  const input = document.getElementById('vgInput');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Speech recognition isn\'t available in this browser. Try Chrome or Safari.'); return; }
+  if (mic._recognition) { mic._recognition.stop(); return; }
+  const rec = new SR();
+  rec.continuous = true; rec.interimResults = true; rec.lang = 'en-US';
+  let committed = input.value;
+  rec.onstart = () => { mic.classList.add('listening'); mic.title = 'Listening… click to stop'; };
+  rec.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) { committed += (committed ? ' ' : '') + t.trim(); }
+      else { interim = t; }
     }
-    if (['failed', 'error', 'cancelled'].includes(status)) throw new Error(`Magnific generation failed: ${pollText}`);
-  }
-  throw new Error('Magnific timed out after 90s');
+    input.value = committed + (interim ? ' ' + interim : '');
+  };
+  rec.onerror = e => {
+    if (e.error === 'not-allowed') alert('Microphone access was denied. Please allow it in browser settings.');
+    mic._recognition = null; mic.classList.remove('listening'); mic.title = 'Speak your direction';
+  };
+  rec.onend = () => { mic._recognition = null; mic.classList.remove('listening'); mic.title = 'Speak your direction'; input.value = committed; };
+  rec.start(); mic._recognition = rec;
+};
+
+window.submitVg = function(skip) {
+  const guidance = skip ? '' : document.getElementById('vgInput').value.trim();
+  document.getElementById('vgOverlay').classList.remove('visible');
+  document.getElementById('vgInput').value = '';
+  if (_vgResolve) { _vgResolve(guidance); _vgResolve = null; }
+};
+
+function promptVisualGuidance() {
+  return new Promise(resolve => {
+    _vgResolve = resolve;
+    document.getElementById('vgInput').value = '';
+    document.getElementById('vgOverlay').classList.add('visible');
+    setTimeout(() => document.getElementById('vgInput').focus(), 50);
+  });
 }
 
+document.getElementById('vgOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) window.submitVg(true); });
+document.getElementById('vgInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.submitVg(false); } });
+
+// ── 1-PAGER (Gemini image + iframe lightbox)
 window.open1Pager = async function(i) {
   const idea = _lastIdeas[i];
   const brandName = _lastBrand;
   if (!idea) return;
 
-  const ac = idea.score >= 9 ? '#e8441a' : idea.score >= 7 ? '#22c55e' : idea.score >= 5 ? '#f59e0b' : '#ef4444';
-  const acDim = idea.score >= 9 ? 'rgba(232,68,26,.15)' : idea.score >= 7 ? 'rgba(34,197,94,.12)' : 'rgba(245,158,11,.12)' ;
+  const userGuidance = await promptVisualGuidance();
+
+  const brandColor = activeBrandId && brands[activeBrandId]?.color
+    ? brands[activeBrandId].color
+    : getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#06e3fc';
+  const hex = brandColor.replace('#','');
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
+  const ac = brandColor;
+  const acDim = `rgba(${r},${g},${b2},0.15)`;
   const year = new Date().getFullYear();
 
-  // Fallback image (used if Magnific key not set or fails)
-  const imgSeed = Math.abs(idea.headline.split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % 1000;
-  let heroImg = `https://picsum.photos/seed/${imgSeed}/1600/900`;
+  const frame = document.getElementById('pagerFrame');
+  frame.srcdoc = `<!DOCTYPE html><html><body style="margin:0;background:#08080d;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px;font-family:'Space Mono',monospace;color:#555;font-size:11px;letter-spacing:.12em;text-transform:uppercase;"><div style="width:8px;height:8px;border-radius:50%;background:${ac};animation:p 1.4s ease-in-out infinite;"></div><span>Generating visual…</span><style>@keyframes p{0%,100%{opacity:1;box-shadow:0 0 0 0 ${acDim}}50%{opacity:.7;box-shadow:0 0 0 10px rgba(0,0,0,0)}}</style></body></html>`;
+  document.getElementById('pagerOverlay').classList.add('visible');
+  document.body.style.overflow = 'hidden';
 
-  // Try Magnific image generation if key is present
-  const magnificKey = document.getElementById('magnificKey')?.value?.trim();
-  let magnificLoading = !!magnificKey;
-  let magnificImageUrl = null;
-
-  // Build a cinematic image prompt from the idea
-  const imagePrompt = `Editorial, cinematic advertising photograph for a ${brandName} campaign. ${idea.headline}. ${idea.humanTension ? idea.humanTension + '.' : ''} Platform: ${idea.platform}. Mood: bold, high-contrast, commercial. 16:9 widescreen, professional studio or location photography, dramatic lighting.`;
-
-  if (magnificKey) {
-      // Open pager with loading state, swap image when Magnific resolves
-    const buildHtml = (imgSrc, imgLoading) => `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>${idea.headline}</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
-<style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;}
-  .slide{position:relative;width:min(100vw, calc(100vh * 16/9));height:min(100vh, calc(100vw * 9/16));background:#08080d;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
-  .left{position:relative;padding:5% 5% 4% 6%;display:flex;flex-direction:column;justify-content:space-between;z-index:2;background:#08080d;}
-  .left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);}
-  .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
-  .brand-pill{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:clamp(7px,1vw,11px);letter-spacing:.2em;text-transform:uppercase;color:#555;}
-  .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
-  .score-badge{font-family:'Space Mono',monospace;font-size:clamp(8px,1.1vw,13px);letter-spacing:.12em;color:${ac};border:1px solid ${ac};padding:3px 10px;border-radius:2px;}
-  .headline-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6% 0;}
-  .eyebrow{font-family:'Space Mono',monospace;font-size:clamp(7px,.9vw,10px);letter-spacing:.25em;text-transform:uppercase;color:${ac};margin-bottom:3%;}
-  .headline{font-family:'Highrise',sans-serif;font-size:clamp(18px,3.2vw,48px);font-weight:700;line-height:1.0;letter-spacing:.01em;color:#f5f3ee;margin-bottom:5%;}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;}
-  .chip{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border:1px solid #2a2a35;color:#555;}
-  .chip-accent{border-color:${ac};color:${ac};}
-  .brief-block{border-top:1px solid #1a1a24;padding-top:4%;}
-  .brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:4%;}
-  .brief-field-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.75vw,8px);letter-spacing:.2em;text-transform:uppercase;color:${ac};margin-bottom:5px;}
-  .brief-field-text{font-size:clamp(9px,1.1vw,13px);color:#9ca3af;line-height:1.5;}
-  .footer-bar{display:flex;align-items:center;justify-content:space-between;padding-top:3%;margin-top:3%;border-top:1px solid #1a1a24;}
-  .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#333;}
-  .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#333;}
-  .right{position:relative;overflow:hidden;}
-  .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;filter:saturate(.7) contrast(1.1);transition:opacity .5s;}
-  .img-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#08080d;}
-  .img-loading-text{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.18em;text-transform:uppercase;color:${ac};animation:blink 1.4s ease-in-out infinite;}
-  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
-  .right-overlay{position:absolute;inset:0;background:linear-gradient(135deg, rgba(8,8,13,.7) 0%, rgba(8,8,13,.1) 100%);}
-  .right-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:5%;}
-  .mockup-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3%;flex:1;margin:5% 0;}
-  .mockup-frame{border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(8,8,13,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);position:relative;overflow:hidden;}
-  .mockup-frame::before{content:'';position:absolute;inset:0;background:${acDim};}
-  .mockup-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center;position:relative;z-index:1;}
-  .mockup-frame.hero-frame{grid-column:1/-1;min-height:35%;}
-  .hero-frame-inner{position:relative;z-index:1;text-align:center;padding:12%;}
-  .hero-frame-headline{font-size:clamp(11px,1.6vw,20px);font-weight:800;color:#f5f3ee;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;}
-  .hero-frame-sub{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:${ac};}
-  .signals-strip{font-family:'Space Mono',monospace;font-size:clamp(6px,.65vw,7.5px);letter-spacing:.1em;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.06);padding-top:3%;line-height:1.7;}
-  .magnific-badge{position:absolute;bottom:8px;right:10px;font-family:'Space Mono',monospace;font-size:clamp(5px,.6vw,7px);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);z-index:3;}
-  @media print{html,body{width:297mm;height:167mm;display:block;}.slide{width:297mm;height:167mm;}}
-</style>
-</head>
-<body>
-<div class="slide">
-  <div class="left">
-    <div class="top-bar">
-      <div class="brand-pill">${brandName}</div>
-      <div class="score-badge">${idea.score} / 10</div>
-    </div>
-    <div class="headline-block">
-      <div class="eyebrow">${idea.rigorLabel || 'Campaign Concept'}</div>
-      <div class="headline">${idea.headline}</div>
-      ${idea.handle ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(7px,.85vw,10px);color:${ac};font-style:italic;margin-bottom:4%;">"${idea.handle}"</div>` : ''}
-      <div class="chips">
-        <span class="chip chip-accent">${idea.platform}</span>
-        <span class="chip">${idea.format}</span>
-      </div>
-    </div>
-    <div class="brief-block">
-      ${idea.humanTension ? `<div style="font-size:clamp(9px,1.05vw,12px);color:#e5e7eb;font-style:italic;font-weight:600;margin-bottom:4%;padding-bottom:3%;border-bottom:1px solid #1a1a24;">${idea.humanTension}</div>` : ''}
-      <div class="brief-grid">
-        <div><div class="brief-field-label">Why Now</div><div class="brief-field-text">${idea.whyNow}</div></div>
-        <div><div class="brief-field-label">Execution</div><div class="brief-field-text">${idea.execution}</div></div>
-      </div>
-      ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
-      <div class="footer-bar">
-        <span class="footer-scout">{ SCOUT } · Concept Rigor Engine</span>
-        <span class="footer-year">${year}</span>
-      </div>
-    </div>
-  </div>
-  <div class="right">
-    ${imgLoading
-      ? `<div class="img-loading"><span class="img-loading-text">Generating image…</span></div>`
-      : `<img id="heroImg" class="hero-img" src="${imgSrc}" alt="" onerror="this.style.opacity=0" />`
-    }
-    <div class="right-overlay"></div>
-    <div class="right-content">
-      <div class="mockup-grid">
-        <div class="mockup-frame hero-frame">
-          <div class="hero-frame-inner">
-            <div class="hero-frame-headline">${idea.headline}</div>
-            <div class="hero-frame-sub">${idea.platform} · ${idea.format}</div>
-          </div>
-        </div>
-        <div class="mockup-frame"><div class="mockup-label">Social post mockup</div></div>
-        <div class="mockup-frame"><div class="mockup-label">OOH / activation</div></div>
-      </div>
-      ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${idea.sourceSignals}</div>` : ''}
-    </div>
-    ${!imgLoading ? `<div class="magnific-badge">Image: Magnific AI</div>` : ''}
-  </div>
-</div>
-</body>
-</html>`;
-
-    const w = window.open('', '_blank');
-    w.document.write(buildHtml(heroImg, true));
-    w.document.close();
-
+  const googleKey = (typeof SCOUT_KEYS !== 'undefined') ? SCOUT_KEYS.google : '';
+  let heroImg = null;
+  if (googleKey) {
     try {
-      const magUrl = await magnificCall(imagePrompt);
-      if (magUrl && !w.closed) {
-        // Swap in the generated image
-        const img = w.document.createElement('img');
-        img.id = 'heroImg';
-        img.className = 'hero-img';
-        img.src = magUrl;
-        const loading = w.document.querySelector('.img-loading');
-        if (loading) loading.replaceWith(img);
-        const badge = w.document.createElement('div');
-        badge.className = 'magnific-badge';
-        badge.textContent = 'Image: Magnific AI';
-        w.document.querySelector('.right').appendChild(badge);
-      }
-    } catch(e) {
-      console.error('[Magnific] Error:', e.message);
-      if (!w.closed) {
-        const loading = w.document.querySelector('.img-loading');
-        if (loading) {
-          // Show error text then fall back to picsum after 3s
-          loading.querySelector('.img-loading-text').textContent = 'Image failed: ' + e.message.slice(0, 80);
-          await new Promise(r => setTimeout(r, 3000));
-          const img = w.document.createElement('img');
-          img.className = 'hero-img';
-          img.src = heroImg;
-          if (!w.closed) loading.replaceWith(img);
-        }
-      }
-    }
-    return;
+      const clean = s => (s || '').replace(/[\uD800-\uDFFF]/g, '');
+      const imgPrompt = [
+        `A single cinematic advertising photograph for a ${clean(brandName)} campaign.`,
+        `Core idea: ${clean(idea.headline)}.`,
+        idea.humanTension ? `Visual emotion: ${clean(idea.humanTension)}.` : '',
+        userGuidance ? `Visual direction: ${clean(userGuidance)}.` : '',
+        `Style: bold, high-production advertising photography. Dark atmospheric lighting. 16:9 widescreen composition.`,
+        `IMPORTANT: No text, no words, no typography, no logos, no overlays. Pure image only.`
+      ].filter(Boolean).join(' ');
+      const imgRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/interactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': googleKey },
+        body: JSON.stringify({
+          model: 'gemini-3.1-flash-image',
+          input: [{ type: 'text', text: imgPrompt }],
+          response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '16:9', image_size: '1K' }
+        })
+      });
+      if (imgRes.ok) {
+        const imgData = await imgRes.json();
+        const outputStep = imgData?.steps?.find(s => s.type === 'model_output');
+        const part = outputStep?.content?.[0];
+        if (part?.data) heroImg = `data:${part.mime_type || 'image/jpeg'};base64,${part.data}`;
+      } else { console.error('Gemini image error', imgRes.status, (await imgRes.text()).slice(0,200)); }
+    } catch(e) { /* fall through to fallback */ }
+  }
+  if (!heroImg) {
+    const imgKeywords = encodeURIComponent((brandName + ' ' + idea.platform + ' ' + idea.format).replace(/[^a-zA-Z0-9 ]/g,' ').replace(/\s+/g,'+').slice(0,80));
+    heroImg = `https://images.unsplash.com/1600x900/?${imgKeywords}`;
   }
 
-  // No Magnific key — build inline with picsum fallback
-  const buildHtml = (imgSrc, imgLoading) => `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${idea.headline}</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;}
-  .slide{position:relative;width:min(100vw, calc(100vh * 16/9));height:min(100vh, calc(100vw * 9/16));background:#08080d;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;}
-  .left{position:relative;padding:5% 5% 4% 6%;display:flex;flex-direction:column;justify-content:space-between;z-index:2;background:#08080d;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#08080d;font-family:'Space Grotesk',sans-serif;}
+  .slide{width:100vw;height:100vh;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;overflow:hidden;}
+  @media(max-aspect-ratio:1/1){.slide{grid-template-columns:1fr;grid-template-rows:1fr 40vh;}}
+  .left{position:relative;padding:5% 5% 4% 6%;display:flex;flex-direction:column;justify-content:space-between;z-index:2;background:#08080d;overflow-y:auto;overflow-x:hidden;min-height:0;}
   .left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);}
+  @media(max-aspect-ratio:1/1){.left::after{display:none;}}
   .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
   .brand-pill{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:clamp(7px,1vw,11px);letter-spacing:.2em;text-transform:uppercase;color:#555;}
   .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
   .score-badge{font-family:'Space Mono',monospace;font-size:clamp(8px,1.1vw,13px);letter-spacing:.12em;color:${ac};border:1px solid ${ac};padding:3px 10px;border-radius:2px;}
   .headline-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6% 0;}
   .eyebrow{font-family:'Space Mono',monospace;font-size:clamp(7px,.9vw,10px);letter-spacing:.25em;text-transform:uppercase;color:${ac};margin-bottom:3%;}
-  .headline{font-family:'Highrise',sans-serif;font-size:clamp(18px,3.2vw,48px);font-weight:700;line-height:1.0;letter-spacing:.01em;color:#f5f3ee;margin-bottom:5%;}
+  .headline{font-family:'Highrise',var(--sans,sans-serif);font-size:clamp(18px,3.6vw,52px);font-weight:700;line-height:1.0;letter-spacing:.01em;color:#f5f3ee;margin-bottom:5%;}
   .chips{display:flex;gap:8px;flex-wrap:wrap;}
   .chip{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border:1px solid #2a2a35;color:#555;}
   .chip-accent{border-color:${ac};color:${ac};}
@@ -1402,19 +1395,10 @@ window.open1Pager = async function(i) {
   .footer-bar{display:flex;align-items:center;justify-content:space-between;padding-top:3%;margin-top:3%;border-top:1px solid #1a1a24;}
   .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#333;}
   .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#333;}
-  .right{position:relative;overflow:hidden;}
-  .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;filter:saturate(.7) contrast(1.1);}
-  .right-overlay{position:absolute;inset:0;background:linear-gradient(135deg, rgba(8,8,13,.7) 0%, rgba(8,8,13,.1) 100%);}
-  .right-content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:5%;}
-  .mockup-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3%;flex:1;margin:5% 0;}
-  .mockup-frame{border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(8,8,13,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);position:relative;overflow:hidden;}
-  .mockup-frame::before{content:'';position:absolute;inset:0;background:${acDim};}
-  .mockup-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center;position:relative;z-index:1;}
-  .mockup-frame.hero-frame{grid-column:1/-1;min-height:35%;}
-  .hero-frame-inner{position:relative;z-index:1;text-align:center;padding:12%;}
-  .hero-frame-headline{font-size:clamp(11px,1.6vw,20px);font-weight:800;color:#f5f3ee;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;}
-  .hero-frame-sub{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.14em;text-transform:uppercase;color:${ac};}
-  .signals-strip{font-family:'Space Mono',monospace;font-size:clamp(6px,.65vw,7.5px);letter-spacing:.1em;color:rgba(255,255,255,.2);border-top:1px solid rgba(255,255,255,.06);padding-top:3%;line-height:1.7;}
+  .right{position:relative;overflow:hidden;min-height:0;}
+  .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .right::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(8,8,13,.45) 0%,transparent 35%);pointer-events:none;}
+  .signals-strip{position:absolute;bottom:0;left:0;right:0;font-family:'Space Mono',monospace;font-size:clamp(6px,.65vw,8px);letter-spacing:.1em;color:rgba(255,255,255,.35);background:linear-gradient(to top,rgba(8,8,13,.8) 0%,transparent 100%);padding:18px 5% 4%;line-height:1.7;z-index:2;}
   @media print{html,body{width:297mm;height:167mm;display:block;}.slide{width:297mm;height:167mm;}}
 </style>
 </head>
@@ -1442,38 +1426,29 @@ window.open1Pager = async function(i) {
       </div>
       ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
       <div class="footer-bar">
-        <span class="footer-scout">{ SCOUT } · Concept Rigor Engine</span>
+        <span class="footer-scout">{ Scout } · Concept Rigor Engine</span>
         <span class="footer-year">${year}</span>
       </div>
     </div>
   </div>
   <div class="right">
-    <img class="hero-img" src="${imgSrc}" alt="" onerror="this.style.display='none'" />
-    <div class="right-overlay"></div>
-    <div class="right-content">
-      <div class="mockup-grid">
-        <div class="mockup-frame hero-frame">
-          <div class="hero-frame-inner">
-            <div class="hero-frame-headline">${idea.headline}</div>
-            <div class="hero-frame-sub">${idea.platform} · ${idea.format}</div>
-          </div>
-        </div>
-        <div class="mockup-frame"><div class="mockup-label">Social post mockup</div></div>
-        <div class="mockup-frame"><div class="mockup-label">OOH / activation</div></div>
-      </div>
-      ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${idea.sourceSignals}</div>` : ''}
-    </div>
+    <img class="hero-img" src="${heroImg}" alt="" onerror="this.style.opacity='0'" />
+    ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${esc(idea.sourceSignals)}</div>` : ''}
   </div>
 </div>
 </body>
 </html>`;
-
-  // No Magnific key — use picsum fallback inline
-  const html = buildHtml(heroImg, false);
-  const w = window.open('', '_blank');
-  w.document.write(html);
-  w.document.close();
+  frame.srcdoc = html;
 };
+
+window.closePager = function() {
+  document.getElementById('pagerOverlay').classList.remove('visible');
+  document.getElementById('pagerFrame').srcdoc = '';
+  document.body.style.overflow = '';
+};
+
+document.getElementById('pagerOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) window.closePager(); });
+
 
 function getFeedback(i) {
   const brand = brands[activeBrandId];
@@ -1600,6 +1575,16 @@ window.toggleContext = function() {
 // ── INIT
 renderDropdown();
 renderEditor();
+
+// ── SCOUT_KEYS auto-fill
+if (typeof SCOUT_KEYS !== 'undefined') {
+  if (SCOUT_KEYS.anthropic) {
+    const ak = document.getElementById('apiKey');
+    if (ak) ak.value = SCOUT_KEYS.anthropic;
+    const wrap = document.getElementById('apiKeyWrap');
+    if (wrap) wrap.style.display = 'none';
+  }
+}
 </script>
 
 <script>
