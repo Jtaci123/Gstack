@@ -19,8 +19,8 @@
     --rule-hi:    #50505a;
     --muted:      #7878a0;
     --ghost:      #48485e;
-    --signal:     #06e3fc;
-    --signal-dim: rgba(6,227,252,0.1);
+    --signal:     #e8302a;
+    --signal-dim: rgba(232,48,42,0.1);
     --glass:      rgba(255,255,255,0.04);
     --glass-b:    rgba(255,255,255,0.09);
     --mono: 'Space Mono', monospace;
@@ -34,23 +34,7 @@
     font-family: var(--sans);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
   }
-
-  /* ── SIGNAL WAVE CANVAS */
-  #waveCanvas {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 1;
-  }
-
-  /* everything above the canvas */
-  .masthead, .shell { position: relative; z-index: 1; }
-
   /* subtle ambient glow top */
   body::before {
     content: '';
@@ -68,7 +52,7 @@
     border-bottom: 1px solid var(--rule);
     padding: 0 40px;
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto auto 1fr auto;
     align-items: stretch;
     height: 64px;
     gap: 0;
@@ -79,7 +63,14 @@
     top: 0;
     z-index: 100;
   }
-  .masthead-left { display: flex; align-items: center; gap: 14px; padding-right: 28px; border-right: 1px solid var(--rule); }
+  .masthead-logo { display: flex; align-items: center; padding-right: 26px; border-right: 1px solid var(--rule); }
+  .tl-logo { height: 19.5px; width: auto; display: block; }
+  .tl-logo path, .tl-logo rect { fill: #fff; }
+  .masthead-left { display: flex; align-items: center; gap: 14px; padding: 0 28px 0 26px; border-right: 1px solid var(--rule); cursor: pointer; transition: opacity .15s; }
+  .masthead-left:hover { opacity: .8; }
+  .mast-social { display: flex; align-items: center; gap: 14px; border-left: 1px solid var(--rule); padding-left: 20px; }
+  .mast-social a { color: var(--muted); display: flex; align-items: center; transition: color .15s; }
+  .mast-social a:hover { color: var(--ink-strong); }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--signal); flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(6,227,252,.55)} 50%{opacity:.85;box-shadow:0 0 0 8px rgba(6,227,252,0)} }
   .wordmark { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-strong); }
@@ -100,20 +91,21 @@
   .shell { min-height: calc(100vh - 64px); }
 
   /* MAIN */
-  .main { padding: 48px 48px 100px; max-width: 760px; margin: 0 auto; }
+  .main { padding: 48px 48px 100px; max-width: 1600px; margin: 0 auto; }
+  .editor-narrow { max-width: 760px; margin: 0 auto; }
 
   /* BRAND PAGE */
   .brand-editor { display: none; }
   .brand-editor.visible { display: block; }
 
   /* BRAND HERO */
-  .brand-hero { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 1px solid var(--rule); }
+  .brand-hero { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 1px solid var(--rule); text-align: center; }
   .brand-hero-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--signal); margin-bottom: 10px; }
   .brand-hero-name { font-family: 'Highrise', var(--sans); font-size: clamp(28px, 4vw, 44px); font-weight: 700; letter-spacing: .01em; color: var(--ink-strong); line-height: 1; margin-bottom: 10px; }
   .brand-hero-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
 
   /* CONTEXT BLOCK — frosted glass */
-  .context-block { border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 32px; overflow: hidden; background: rgba(31,31,45,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .context-block { border: 1px solid var(--rule); border-radius: 14px; margin-bottom: 32px; overflow: hidden; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .context-block-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; transition: background .15s; }
   .context-block-header:hover { background: rgba(255,255,255,0.04); }
   .context-block-title { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
@@ -128,8 +120,13 @@
 
   /* SOURCE LIST */
   .source-list { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
-  .source-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--rule); background: rgba(255,255,255,0.03); }
-  .source-row:last-child { border-bottom: none; }
+  .source-item { border-bottom: 1px solid var(--rule); }
+  .source-item:last-child { border-bottom: none; }
+  .source-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(255,255,255,0.03); }
+  /* Full error text, unlike .source-name below — never truncated, so the actual
+     reason a fetch failed is always visible instead of being cut off by the
+     ellipsis exactly where the useful part starts. */
+  .source-error-detail { padding: 0 14px 10px 46px; font-family: var(--mono); font-size: 10px; color: #f87171; line-height: 1.5; background: rgba(255,255,255,0.03); word-break: break-word; }
   .source-icon { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; }
   .source-name { font-family: var(--mono); font-size: 11px; color: var(--ink); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .source-badge { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
@@ -176,13 +173,18 @@
   .cta-secondary:hover { border-color: var(--rule-hi); color: var(--ink); }
 
   /* RUN STRIP — frosted glass */
-  .run-strip { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: rgba(31,31,45,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .run-strip { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
   .run-strip select { border: none; border-right: 1px solid var(--rule); padding: 0 16px; font-family: var(--mono); font-size: 11px; color: var(--muted); background: transparent; outline: none; height: 52px; cursor: pointer; letter-spacing: .05em; }
   .run-btn { flex: 1; padding: 0 32px; background: var(--signal); border: none; color: #fff; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; height: 52px; white-space: nowrap; transition: opacity .15s; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .run-btn:hover { opacity: .88; }
   .run-btn:disabled { opacity: .35; cursor: not-allowed; }
   .run-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.7); }
   .run-btn:not(:disabled) .run-dot { animation: pulse 1.5s ease-in-out infinite; }
+  /* Design-mode toggle (temporary dev affordance) */
+  .design-mode-toggle { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px dashed var(--rule-hi); border-radius: 8px; cursor: pointer; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); user-select: none; white-space: nowrap; transition: all .15s; }
+  .design-mode-toggle:hover { border-color: var(--signal); }
+  .design-mode-toggle input { accent-color: var(--signal); width: 14px; height: 14px; cursor: pointer; }
+  .design-mode-toggle:hover span { color: var(--ink); }
 
   /* STATUS / ERROR */
   .status-bar { display: none; margin-top: 14px; padding: 12px 16px; border-left: 3px solid var(--signal); background: var(--signal-dim); backdrop-filter: blur(12px); border-radius: 0 10px 10px 0; font-family: var(--mono); font-size: 11px; color: var(--ink); letter-spacing: .05em; line-height: 1.8; }
@@ -196,71 +198,92 @@
   /* RESULTS */
   .results { display: none; margin-top: 40px; }
   .results.visible { display: block; }
-  .brief-header { display: grid; grid-template-columns: 1fr auto; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 24px; }
-  .brief-title { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .18em; text-transform: uppercase; }
-  .brief-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .06em; }
+  .brief-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; }
 
-  /* IDEA CARDS — frosted glass */
-  .idea-card { border: 1px solid var(--glass-b); border-radius: 14px; margin-bottom: 12px; overflow: hidden; background: rgba(31,31,45,0.68); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color .2s, box-shadow .2s; }
-  .idea-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
-  .idea-header { display: flex; align-items: stretch; border-bottom: 1px solid var(--rule); }
-  .idea-rank { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #fff; background: var(--rule-hi); width: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .rank-signal { background: var(--signal); color: #fff; }
-  .rank-hi { background: #059669; }
-  .rank-mid { background: #d97706; }
-  .rank-lo { background: #dc2626; }
-  .idea-title-wrap { flex: 1; padding: 14px 18px; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
-  .idea-headline { font-size: 16px; font-weight: 700; color: var(--ink-strong); line-height: 1.2; letter-spacing: -.01em; }
-  .idea-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 8px; border: 1px solid var(--rule); color: var(--muted); border-radius: 6px; background: rgba(255,255,255,0.04); }
-  .chip-platform { border-color: var(--rule-hi); color: var(--ink); }
-  .idea-body { padding: 18px 18px 18px 78px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .idea-field-label { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
-  .idea-field-text { font-size: 13px; color: var(--ink); line-height: 1.6; }
-  .idea-signals { grid-column: 1/-1; font-family: var(--mono); font-size: 10px; color: var(--ghost); letter-spacing: .04em; padding-top: 12px; border-top: 1px solid var(--rule); }
-  .idea-handle { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .06em; font-style: italic; margin-top: 2px; }
-  .idea-tension { grid-column: 1/-1; font-size: 12px; color: var(--ink); font-weight: 600; font-style: italic; padding: 10px 14px; background: rgba(255,255,255,0.05); border-left: 3px solid var(--signal); border-radius: 0 6px 6px 0; margin-bottom: 4px; }
+  /* ── PINTEREST-STYLE TILE FEED ── */
+  /* JS-computed masonry: each new tile goes into the currently-shortest column,
+     so columns stay balanced to the bottom instead of CSS column-balance leaving
+     trailing tiles stranded in only 2 of 4 columns. */
+  .tile-grid { display: flex; align-items: flex-start; gap: 16px; }
+  .tile-col { display: flex; flex-direction: column; gap: 16px; flex: 1 1 0; min-width: 0; }
+  @media(max-width:900px)  { .tile-grid { gap: 12px; } .tile-col { gap: 12px; } }
 
-  /* RIGOR BAR */
-  .rigor-bar { grid-column: 1/-1; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--rule); margin-top: 4px; background: rgba(0,0,0,0.2); }
-  .rigor-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
-  .rigor-strong  { background: rgba(52,211,153,0.15);  color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
-  .rigor-soft    { background: rgba(251,191,36,0.15);   color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-  .rigor-exec    { background: rgba(129,140,248,0.15);  color: #818cf8; border: 1px solid rgba(129,140,248,0.3); }
-  .rigor-deco    { background: rgba(156,163,175,0.15);  color: #9ca3af; border: 1px solid rgba(156,163,175,0.3); }
-  .rigor-cliche  { background: rgba(248,113,113,0.15);  color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-  .rigor-note { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
-  .rigor-score { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 12px; }
+  /* box-shadow (inset) instead of a real border: a border sits on a sharp-cornered
+     box while overflow:hidden clips children to the rounded corner, and browsers'
+     anti-aliasing at that clip boundary can leave a 1px seam where the tile's own
+     background peeks through against the color bar. An inset box-shadow paints
+     after clipping and always follows the rounded shape exactly, so one unified
+     stroke wraps the image and the color bar with no seam at the corners. */
+  .tile { break-inside: avoid; border-radius: 20px; overflow: hidden; position: relative; cursor: pointer;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+    transition-property: transform, box-shadow, opacity, filter;
+    transition-duration: .45s, .18s, .6s, .6s;
+    transition-timing-function: cubic-bezier(.22,.61,.36,1), ease, cubic-bezier(.22,.61,.36,1), cubic-bezier(.22,.61,.36,1);
+    opacity: 0; transform: translateY(28px); filter: blur(10px); }
+  /* Scroll reveal — subtle move-up + blur-to-sharp, same feel as the intro
+     headlines. Added once each tile scrolls into view (see observeTileReveals). */
+  .tile.tile-revealed { opacity: 1; transform: translateY(0); filter: blur(0); }
+  /* No vertical shift on the tile itself — only the internal bar/buttons animate,
+     via .tile-content growing and the like/build buttons fading in below. */
+  .tile:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), 0 14px 34px rgba(0,0,0,0.4); }
+  .tile-color { background: var(--tile-bg, var(--paper-mid)); }
+  .tile-image { background-size: cover; background-position: center; }
+  .tile-image.tile-loading { background: var(--tile-bg, var(--paper-mid)); }
+  .tile-image.tile-loading::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  /* Bottom bar carries its own gradient (brand-colored, via --signal) sized to
+     itself — not a separate full-image scrim — so most of the image stays
+     clear. It's compact by default (just eyebrow + headline); hovering grows
+     .tile-sub from 0 height, which pushes the bar's top edge upward since the
+     tile is a flex column pinned to the bottom (justify-content: flex-end).
+     Both gradient stops are fully opaque — no fade-to-transparent — so the
+     top of the bar is a hard line against the image, not a soft scrim. */
+  .tile-content { position: relative; z-index: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; transition: padding .4s ease; border-radius: 0 0 20px 20px; }
+  .tile-image .tile-content {
+    background: linear-gradient(to bottom,
+      color-mix(in srgb, var(--signal) 62%, black 24%) 0%,
+      color-mix(in srgb, var(--signal) 72%, black 14%) 100%);
+  }
+  .tile:hover .tile-content { padding-bottom: 20px; }
+  .tile-eyebrow { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+  .tile-headline { font-size: 17px; font-weight: 700; line-height: 1.18; letter-spacing: -.01em; }
+  .tile-sub {
+    font-size: 8px; line-height: 1.6; letter-spacing: .02em; opacity: 0; max-height: 0; margin-top: 0; overflow: hidden;
+    transition: max-height .45s cubic-bezier(.22,.61,.36,1), opacity .35s ease, margin-top .45s cubic-bezier(.22,.61,.36,1);
+  }
+  .tile:hover .tile-sub { opacity: .92; max-height: 120px; margin-top: 8px; }
+  /* Like + Build both sit on top of the image where a static translucent badge
+     easily gets lost against busy photos — instead they're hidden by default
+     and fade/scale in on tile hover, so their appearance itself draws the eye. */
+  .tile-build {
+    position: absolute; top: 12px; right: 12px; z-index: 2; font-family: var(--mono); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; padding: 5px 10px; border-radius: 20px; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); color: #fff; border: 1px solid rgba(255,255,255,0.25);
+    opacity: 0; transform: translateY(-6px) scale(.9);
+    transition: opacity .25s ease, transform .3s cubic-bezier(.22,.61,.36,1);
+  }
+  .tile:hover .tile-build { opacity: 1; transform: translateY(0) scale(1); }
+  /* Single like button (heart) — replaces the old thumbs up/down pair */
+  .tile-like-btn {
+    position: absolute; top: 10px; left: 10px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(-6px) scale(.85);
+    transition: opacity .25s ease, transform .3s cubic-bezier(.22,.61,.36,1), background .15s;
+  }
+  .tile:hover .tile-like-btn { opacity: .8; transform: translateY(0) scale(1); }
+  .tile-like-btn:hover { opacity: 1; transform: translateY(0) scale(1.1); }
+  .tile-like-btn svg path { fill: none; stroke: currentColor; stroke-width: 2; transition: fill .15s; }
+  /* Already-liked tiles keep their heart visible always — lets you spot your
+     favorites at a glance while browsing, without needing to hover each tile. */
+  .tile-like-btn.active-like { opacity: 1; transform: translateY(0) scale(1); background: color-mix(in srgb, var(--signal) 75%, black 10%); border-color: var(--signal); }
+  .tile-like-btn.active-like svg path { fill: currentColor; }
+  .tile-h1 { aspect-ratio: 1/1.15; } .tile-h2 { aspect-ratio: 3/4; } .tile-h3 { aspect-ratio: 1/1; } .tile-h4 { aspect-ratio: 4/5; }
+  @media(max-width:520px) { .tile-h1,.tile-h2,.tile-h3,.tile-h4 { aspect-ratio: 4/3; } }
 
-  /* COMMERCE BAR */
-  .commerce-bar { grid-column: 1/-1; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--rule); margin-top: 4px; background: rgba(0,0,0,0.15); }
-  .commerce-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
-  .commerce-gold   { background: rgba(253,224,71,0.15);  color: #fde047; border: 1px solid rgba(253,224,71,0.3); }
-  .commerce-silver { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); }
-  .commerce-bronze { background: rgba(251,146,60,0.15);  color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
-  .commerce-niche  { background: rgba(156,163,175,0.15); color: #9ca3af; border: 1px solid rgba(156,163,175,0.3); }
-  .commerce-note { font-size: 11px; color: var(--muted); line-height: 1.5; flex: 1; }
-  .commerce-score { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 12px; }
-
-  /* FEEDBACK / ACTIONS */
-  .idea-actions { grid-column: 1/-1; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; gap: 12px; }
-  .feedback-btns { display: flex; gap: 6px; }
-  .btn-feedback { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--rule); background: rgba(255,255,255,0.04); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all .15s; opacity: .5; }
-  .btn-feedback:hover { opacity: 1; border-color: var(--rule-hi); transform: scale(1.1); }
-  .btn-feedback.active-up   { background: rgba(52,211,153,0.2);  border-color: rgba(52,211,153,0.5);  opacity: 1; }
-  .btn-feedback.active-down { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.5); opacity: 1; }
-  .feedback-count { font-family: var(--mono); font-size: 8px; color: var(--ghost); letter-spacing: .1em; }
-  .btn-pager { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 14px; border: 1px solid var(--rule-hi); background: rgba(255,255,255,0.04); color: var(--ink); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
-  .btn-pager:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-
-  /* HISTORY */
-  .history-empty { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 4px 0; }
-  .history-row { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 8px; cursor: pointer; transition: background .15s; border-bottom: 1px solid var(--rule); }
-  .history-row:last-child { border-bottom: none; }
-  .history-row:hover { background: var(--glass-b); }
-  .history-date { font-family: var(--mono); font-size: 10px; color: var(--signal); letter-spacing: .06em; white-space: nowrap; }
-  .history-count { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
-  .history-preview { font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* "Favorites" filter toggle — shown at the top of a tile feed */
+  .liked-filter-btn { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 7px 14px; border: 1px solid var(--rule-hi); border-radius: 20px; background: rgba(255,255,255,0.04); color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .liked-filter-btn:hover { border-color: var(--signal); color: var(--ink); }
+  .liked-filter-btn svg path { fill: none; stroke: currentColor; stroke-width: 2; transition: fill .15s; }
+  .liked-filter-btn.active-filter { background: var(--signal); border-color: var(--signal); color: #fff; }
+  .liked-filter-btn.active-filter svg path { fill: currentColor; }
 
   /* SOURCE LOG */
   .source-log-toggle { margin-top: 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: none; background: none; padding: 0; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; transition: color .15s; }
@@ -270,20 +293,156 @@
   .source-log { display: none; margin-top: 10px; border: 1px solid var(--rule); border-radius: 10px; padding: 14px; font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.8; white-space: pre-wrap; max-height: 220px; overflow-y: auto; background: rgba(0,0,0,0.2); }
   .source-log.visible { display: block; }
 
+  @media(max-width:900px) {
+    .masthead { height: auto; display: flex; flex-wrap: wrap; align-items: center; padding: 10px 16px; gap: 10px 14px; }
+    .masthead-logo { border-right: none; padding-right: 0; }
+    .masthead-left { border-right: none; padding: 0; margin-right: auto; }
+    .masthead-center { padding: 0; flex: 1 1 100%; order: 5; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+    .brand-select-wrap { flex-wrap: wrap; gap: 8px; flex: 1; }
+    .brand-select { min-width: 0; flex: 1; }
+    .masthead-right { border-left: none; padding-left: 0; }
+    .mast-social { border-left: none; padding-left: 0; }
+    .key-input { width: 100%; }
+    .main { padding: 24px 16px 60px; }
+  }
   @media(max-width:700px) {
-    .shell { grid-template-columns: 1fr; }
-    .sidebar { border-right: none; border-bottom: 1px solid var(--rule); }
-    .main { padding: 24px 20px 60px; }
-    .idea-body { grid-template-columns: 1fr; padding-left: 18px; }
+    .main { padding: 20px 14px 60px; }
   }
 
+  /* ── INTRO SCROLL (parallax landing) ── */
+  #introScroll { display: none; position: relative; }
+  #introScroll.visible { display: block; }
+  .intro-panel {
+    position: sticky;
+    top: var(--mast-h, 64px);
+    height: calc(100vh - var(--mast-h, 64px));
+    height: calc(100svh - var(--mast-h, 64px));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6vh;
+  }
+  .intro-headline {
+    position: relative; z-index: 2;
+    font-family: 'Highrise', var(--sans);
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: .92;
+    letter-spacing: .005em;
+    will-change: transform, opacity, filter;
+    user-select: none;
+    pointer-events: none;
+  }
+  /* Rainbow-adjacent lock-in ring around the whole viewport, echoing the oryzo.ai
+     reference — pulses in via JS (introEdgeGlow) right as a panel settles into
+     place, using the current brand accent instead of a fixed color. */
+  .intro-edge-glow {
+    position: fixed; inset: 0; z-index: 95; pointer-events: none; opacity: 0;
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--signal) 65%, white 35%),
+      inset 0 0 70px 12px var(--signal-dim),
+      inset 0 0 160px 50px color-mix(in srgb, var(--signal) 22%, transparent 78%);
+  }
+  /* All intro colors derive from --signal (the active brand's color) via color-mix,
+     instead of being hardcoded to one brand — switching brands recolors these too. */
+  .intro-p1 {
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--signal) 82%, white 18%) 0%,
+      var(--signal) 100%);
+  }
+  .intro-p1 .intro-headline {
+    font-size: clamp(84px, 19vw, 300px);
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--signal) 22%, black 78%) 0%,
+      color-mix(in srgb, var(--signal) 45%, black 55%) 55%,
+      color-mix(in srgb, var(--signal) 72%, black 28%) 105%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .intro-p2 {
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--signal) 55%, black 45%) 0%,
+      color-mix(in srgb, var(--signal) 28%, black 72%) 50%,
+      color-mix(in srgb, var(--signal) 8%, black 92%) 100%);
+  }
+  .intro-p2 .intro-headline {
+    font-size: clamp(84px, 19vw, 300px);
+    background: linear-gradient(180deg,
+      #ffffff 30%,
+      color-mix(in srgb, var(--signal) 32%, white 68%) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .intro-p3 { background: linear-gradient(180deg, #17171f 0%, #101016 100%); }
+  .intro-p3 .intro-headline { font-size: clamp(44px, 8.5vw, 132px); color: #fff; line-height: .98; }
+  .intro-p4 {
+    background: linear-gradient(180deg,
+      #14090a 0%,
+      color-mix(in srgb, var(--signal) 48%, black 52%) 62%,
+      var(--signal) 115%);
+  }
+  .intro-p4 .intro-headline { color: #fff; }
+  .intro-p4 .il { display: block; }
+  .intro-p4 .il-sm { font-size: clamp(34px, 6vw, 96px); }
+  .intro-p4 .il-lg { font-size: clamp(58px, 11.5vw, 186px); }
+  .intro-p4 .il-md { font-size: clamp(40px, 7.5vw, 120px); }
+  .intro-run-btn {
+    font-family: var(--mono); font-size: clamp(11px, 1.2vw, 15px); font-weight: 700;
+    letter-spacing: .22em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 16px;
+    padding: 22px 72px; border: none; border-radius: 16px; cursor: pointer;
+    background: #262633; color: #fff;
+    box-shadow: 0 18px 44px rgba(0,0,0,.35);
+    transition: transform .2s ease, box-shadow .2s ease;
+    will-change: transform;
+  }
+  .intro-run-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 26px 60px rgba(0,0,0,.45); }
+  .intro-run-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--signal); animation: pulse 1.6s ease-in-out infinite; }
+
+  /* PLAY BUTTON (intro panel 1 — opens sizzle video lightbox) */
+  .intro-play-btn {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 84px; height: 84px; border-radius: 50%; z-index: 6;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(8,8,13,0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255,255,255,0.5); color: #fff; cursor: pointer;
+    box-shadow: 0 16px 40px rgba(0,0,0,.35);
+    transition: transform .2s ease, background .2s ease;
+    pointer-events: auto;
+  }
+  .intro-play-btn svg { margin-left: -1px; }
+  .intro-play-btn:hover { transform: translate(-50%,-50%) scale(1.08); background: rgba(8,8,13,0.72); }
+  @media(max-width:700px) { .intro-play-btn { width: 64px; height: 64px; } .intro-play-btn svg { width: 20px; height: 20px; } }
+
+  /* SIZZLE VIDEO LIGHTBOX */
+  .video-overlay { display: none; position: fixed; inset: 0; z-index: 650; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
+  .video-overlay.visible { display: flex; }
+  .video-close { position: absolute; top: 18px; right: 22px; z-index: 10; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 16px; cursor: pointer; transition: all .15s; }
+  .video-close:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  .video-frame { width: min(calc(100vw - 40px), calc((100vh - 56px) * 16 / 9)); max-width: 1400px; aspect-ratio: 16/9; background: #000; border-radius: 8px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .intro-hint {
+    position: absolute; bottom: 4vh; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+    color: rgba(0,0,0,.45); display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .intro-hint::after { content: ''; width: 1px; height: 34px; background: currentColor; animation: hintDrop 1.8s ease-in-out infinite; transform-origin: top; }
+  @keyframes hintDrop { 0%{transform:scaleY(0)} 45%{transform:scaleY(1)} 100%{transform:scaleY(1);opacity:0} }
+
   /* VISUAL GUIDANCE MODAL */
-  .vg-overlay { display: none; position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
+  .vg-overlay { display: none; position: fixed; inset: 0; z-index: 550; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; }
   .vg-overlay.visible { display: flex; }
   .vg-modal { background: var(--paper-dim); border: 1px solid var(--rule); border-radius: 16px; padding: 32px; width: min(540px, calc(100vw - 40px)); display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.6); }
   .vg-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--signal); }
   .vg-title { font-size: 18px; font-weight: 700; color: var(--ink-strong); line-height: 1.2; }
   .vg-sub { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  /* Shows which idea you're about to build/adjust — since a tile click now
+     jumps straight here instead of opening a separate detail view first. */
+  .vg-idea-preview { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px solid var(--rule); border-radius: 12px; background: rgba(255,255,255,0.03); }
+  .vg-idea-preview-thumb { width: 56px; height: 56px; border-radius: 8px; background-size: cover; background-position: center; background-color: var(--paper-mid); flex-shrink: 0; }
+  .vg-idea-preview-text { min-width: 0; }
+  .vg-idea-preview-name { font-size: 14px; font-weight: 700; color: var(--ink-strong); margin-bottom: 3px; }
+  .vg-idea-preview-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
   .vg-input-row { display: flex; gap: 8px; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--paper); transition: border-color .15s; }
   .vg-input-row:focus-within { border-color: var(--signal); }
   .vg-input { flex: 1; border: none; padding: 12px 14px; font-family: var(--sans); font-size: 13px; color: var(--ink); background: transparent; outline: none; resize: none; min-height: 60px; }
@@ -296,6 +455,10 @@
   .vg-skip:hover { color: var(--muted); }
   .vg-generate { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; padding: 12px 28px; background: var(--signal); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; transition: opacity .15s; }
   .vg-generate:hover { opacity: .85; }
+
+  /* 1-PAGER LOADING STATE */
+  .pager-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #08080d; color: #555; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; z-index: 5; }
+  .pager-loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--signal); animation: pulse 1.4s ease-in-out infinite; }
 
   /* SESSION HISTORY DROPDOWN */
   .session-dropdown-wrap { position: relative; }
@@ -317,11 +480,18 @@
   .session-empty { font-family: var(--mono); font-size: 10px; color: var(--ghost); padding: 16px; text-align: center; }
 
   /* 1-PAGER LIGHTBOX */
-  .pager-overlay { display: none; position: fixed; inset: 0; z-index: 300; background: #000; }
+  .pager-overlay { display: none; position: fixed; inset: 0; z-index: 600; background: #000; }
   .pager-overlay.visible { display: block; }
   .pager-close { position: absolute; top: 14px; right: 18px; z-index: 10; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); background: rgba(0,0,0,0.7); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 16px; cursor: pointer; transition: all .15s; }
   .pager-close:hover { color: var(--ink); border-color: var(--rule-hi); }
+  .pager-downloads { position: absolute; bottom: 14px; right: 18px; z-index: 10; display: flex; gap: 8px; }
+  .pager-dl-btn { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); background: rgba(0,0,0,0.7); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 16px; cursor: pointer; transition: all .15s; }
+  .pager-dl-btn:hover { color: var(--ink); border-color: var(--rule-hi); }
+  .pager-dl-btn:disabled { opacity: .5; cursor: not-allowed; }
   .pager-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); border: none; border-radius: 6px; aspect-ratio: 16/9; width: min(calc(100vw - 40px), calc((100vh - 56px) * 16 / 9)); max-width: 1600px; }
+  @media(max-aspect-ratio:1/1) {
+    .pager-frame { aspect-ratio: 3/4; width: min(calc(100vw - 24px), calc((100vh - 40px) * 3 / 4)); height: min(calc(100vh - 40px), calc((100vw - 24px) * 4 / 3)); }
+  }
 </style>
 </head>
 <body>
@@ -329,11 +499,18 @@
 <!-- VISUAL GUIDANCE MODAL -->
 <div class="vg-overlay" id="vgOverlay">
   <div class="vg-modal">
-    <div class="vg-eyebrow">Generate 1-Pager · Visual Guidance</div>
-    <div class="vg-title">Any additional visual direction?</div>
-    <div class="vg-sub">Describe what you'd like to see in the image — mood, setting, subject, style. Leave blank and Scout will interpret the idea visually.</div>
+    <div class="vg-eyebrow">Generate 1-Pager</div>
+    <div class="vg-idea-preview" id="vgIdeaPreview" style="display:none;">
+      <div class="vg-idea-preview-thumb" id="vgIdeaPreviewThumb"></div>
+      <div class="vg-idea-preview-text">
+        <div class="vg-idea-preview-name" id="vgIdeaPreviewName"></div>
+        <div class="vg-idea-preview-sub" id="vgIdeaPreviewSub"></div>
+      </div>
+    </div>
+    <div class="vg-title">Any additional direction?</div>
+    <div class="vg-sub">Optional — guide the idea's copy (headline, handle, tension, execution) or the visual (mood, setting, subject, style), or both. Scout figures out where it applies. Leave blank to build as-is.</div>
     <div class="vg-input-row">
-      <textarea class="vg-input" id="vgInput" placeholder="e.g. July 4th fireworks over a crowded beach, phones held up recording…" rows="2"></textarea>
+      <textarea class="vg-input" id="vgInput" placeholder="e.g. make the headline punchier — or — July 4th fireworks over a crowded beach…" rows="2"></textarea>
       <button class="vg-mic" id="vgMic" title="Speak your direction" onclick="toggleVgMic()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="2" width="6" height="12" rx="3"/>
@@ -345,7 +522,23 @@
     </div>
     <div class="vg-actions">
       <button class="vg-skip" onclick="submitVg(true)">Skip → let Scout decide</button>
-      <button class="vg-generate" onclick="submitVg(false)">Generate Image →</button>
+      <button class="vg-generate" onclick="submitVg(false)">Build →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BRAND MODAL — replaces window.prompt(), which throws/is blocked in some
+     browser contexts (embedded webviews, sandboxed iframes, certain policies) -->
+<div class="vg-overlay" id="addBrandOverlay">
+  <div class="vg-modal">
+    <div class="vg-eyebrow">New Brand</div>
+    <div class="vg-title">What's the brand called?</div>
+    <div class="vg-input-row">
+      <textarea class="vg-input" id="addBrandInput" placeholder="e.g. OtterBox" rows="1" style="resize:none;"></textarea>
+    </div>
+    <div class="vg-actions">
+      <button class="vg-skip" onclick="closeAddBrandModal()">Cancel</button>
+      <button class="vg-generate" onclick="submitAddBrand()">Create →</button>
     </div>
   </div>
 </div>
@@ -353,13 +546,35 @@
 <!-- 1-PAGER LIGHTBOX -->
 <div class="pager-overlay" id="pagerOverlay">
   <button class="pager-close" onclick="closePager()">✕ Close</button>
+  <div class="pager-downloads">
+    <button class="pager-dl-btn" id="pagerPdfBtn" onclick="downloadPagerPdf()">⬇ Download PDF</button>
+  </div>
   <iframe class="pager-frame" id="pagerFrame"></iframe>
 </div>
 
-<canvas id="waveCanvas"></canvas>
+<!-- SIZZLE VIDEO LIGHTBOX -->
+<div class="video-overlay" id="videoOverlay">
+  <button class="video-close" onclick="closeSizzleVideo()">✕ Close</button>
+  <video class="video-frame" id="sizzleVideoEl" src="sizzle-video.mp4" controls playsinline></video>
+</div>
 
 <header class="masthead">
-  <div class="masthead-left">
+  <div class="masthead-logo" title="Tracy-Locke">
+    <svg class="tl-logo" viewBox="0 0 1364.8 354.6" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tracy-Locke">
+      <rect x="651.2" y="167.8" width="58.8" height="34.1" rx="3.3" ry="3.3"/>
+      <path d="M835.6,289.3v34c0,4.5-3.7,8.2-8.2,8.2h-87.7c-5.4,0-9.8-4.4-9.8-9.8V24.8c0-3.1,2.5-5.7,5.7-5.7h38.7c4.3,0,7.7,3.5,7.7,7.7v254.7h45.7c4.3,0,7.8,3.5,7.8,7.8Z"/>
+      <path d="M896.8,15.5h21.1c28.9,0,52.3,23.4,52.3,52.3v211.4c0,28.9-23.4,52.3-52.3,52.3h-21.1c-28.9,0-52.3-23.4-52.3-52.3V67.8c0-28.9,23.4-52.3,52.3-52.3ZM906.9,281.6h.9c5.7,0,10.3-4.6,10.3-10.3V75.7c0-5.7-4.6-10.3-10.3-10.3h-.9c-5.7,0-10.3,4.6-10.3,10.3v195.6c0,5.7,4.6,10.3,10.3,10.3Z"/>
+      <path d="M1106.9,184.8v96.7c-2.6,28.9-26,52.3-54.9,52.3h-21.1c-28.9,0-52.3-23.4-52.3-52.3V67.8c0-28.9,23.4-52.3,52.3-52.3h21.1c28.9,0,52.3,23.4,52.3,52.3v89.8h-42.7c-5.2,0-9.4-4.2-9.4-9.4v-72.5c0-5.7-4.6-10.3-10.3-10.3h-.9c-5.7,0-10.3,4.6-10.3,10.3v197.9c0,5.7,4.6,10.3,10.3,10.3h.9c5.7,0,10.3-4.6,10.3-10.3v-81.1c0-4.2,3.4-7.6,7.6-7.6h47.1Z"/>
+      <path d="M1193.6,323.7l-26-139.4v138.5c0,4.9-3.9,8.8-8.8,8.8h-34.1c-5.1,0-9.3-4.2-9.3-9.3V25.7c0-3.6,2.9-6.6,6.6-6.6h38.3c4,0,7.3,3.3,7.3,7.3v107.8l26.5-109.3c.8-3.4,3.8-5.8,7.3-5.8h32.5c4.4,0,7.6,4.1,6.6,8.4l-32,131.8,31.6,162.5c1.2,5-2.6,9.8-7.7,9.8h-29c-4.7,0-8.8-3.2-9.9-7.8Z"/>
+      <path d="M1301,71.4v74.7c0,1.3,1.1,2.4,2.4,2.4h29.1c5.1,0,9.3,4.2,9.3,9.3v30.5c0,5.6-4.5,10.1-10.1,10.1h-28.3c-1.3,0-2.4,1.1-2.4,2.4v78.3c0,1.3,1.1,2.4,2.4,2.4h40.8c5.7,0,10.3,4.6,10.3,10.3v29.4c0,5.7-4.6,10.2-10.2,10.2h-84.5c-6,0-10.8-4.9-10.8-10.8V21.5c0-1.3,1.1-2.4,2.4-2.4h94.3c5,0,9,4,9,9v30c0,6-4.9,11-11,11h-40.2c-1.3,0-2.4,1.1-2.4,2.4Z"/>
+      <path d="M131.9,69.1h-28.9v258.4c0,2.3-1.9,4.2-4.2,4.2h-42.7c-2.3,0-4.2-1.9-4.2-4.2V69.1h-31.5c-1.7,0-3.2-1.4-3.2-3.2V23.5c0-1.9,1.6-3.5,3.5-3.5h112.7c2.4,0,4.4,2,4.4,4.4v39c0,3.2-2.6,5.7-5.7,5.7Z"/>
+      <path d="M270.8,189v138.1c0,2.4-2,4.4-4.4,4.4h-42.7c-2.2,0-4-1.8-4-4v-112c0-8.5-6.9-15.5-15.5-15.5h-5.8v127.1c0,2.4-1.9,4.4-4.4,4.4h-42.7c-2.3,0-4.1-1.8-4.1-4.1V31.1c0-6.1,5-11.1,11.1-11.1h72.2c22.3,0,40.4,18.1,40.4,40.4v67.1c0,17.2-14,31.2-31.2,31.2h.9c16.8,0,30.3,13.6,30.3,30.3ZM209.5,69.1h-8.3c-1.6,0-2.9,1.3-2.9,2.9v58.5c0,2.1,1.7,3.8,3.8,3.8h5.3c6.7,0,12.1-5.4,12.1-12.1v-42.9c0-5.6-4.5-10.1-10.1-10.1Z"/>
+      <path d="M277.7,327.8L314.1,23.7c.3-2.1,2.1-3.7,4.3-3.7h53c2.4,0,4.5,1.8,4.8,4.2l36.3,302.9c.3,2.3-1.5,4.4-3.8,4.4h-36.3c-2.2,0-4-1.6-4.3-3.7l-4.3-68.1h-37.2l-4.4,68.3c-.3,2.1-2,3.6-4.1,3.6h-37.1c-2,0-3.5-1.8-3.3-3.7ZM332.3,217h25.6l-12.8-94-12.8,94Z"/>
+      <path d="M665.5,20c3.2,0,5.5,3,4.7,6l-40.1,166.7h-.5c0-.1,0,133.2,0,133.2,0,3.1-2.5,5.6-5.6,5.6h-40.1c-3.1,0-5.5-2.5-5.5-5.5v-137.4l-39.3-163.3c-.7-2.7,1.4-5.3,4.2-5.3h38.8c2.3,0,4.3,1.6,4.8,3.9l7.1,36.1,9.1,46.3c.4,1.9,3.1,1.9,3.4,0l9.1-46.3,6.9-34.9c.6-3,3.2-5.1,6.2-5.1h36.9Z"/>
+      <path d="M540.3,184.8v96.7c0,28.9-23.4,52.3-52.3,52.3h-21.1c-28.9,0-52.3-23.4-52.3-52.3V67.8c0-28.9,23.4-52.3,52.3-52.3h21.1c28.9,0,52.3,23.4,52.3,52.3v89.8h-42.7c-5.2,0-9.4-4.2-9.4-9.4v-72.5c0-5.7-4.6-10.3-10.3-10.3h-.9c-5.7,0-10.3,4.6-10.3,10.3v197.9c0,5.7,4.6,10.3,10.3,10.3h.9c5.7,0,10.3-4.6,10.3-10.3v-81.1c0-4.2,3.4-7.6,7.6-7.6h44.5Z"/>
+    </svg>
+  </div>
+  <div class="masthead-left" id="scoutLogoBtn" onclick="goToIntro()" role="button" tabindex="0" title="Back to intro">
     <div class="live-dot"></div>
     <span class="wordmark">{ Scout }</span>
   </div>
@@ -370,7 +585,15 @@
         <option value="">— select a brand —</option>
       </select>
       <button class="new-brand-btn" onclick="promptNewBrand()">+ Add Brand</button>
+      <!-- DESIGN MODE — temporary, for UI work: fills the grid with local
+           placeholder tiles (copy + SVG images) and makes zero API calls. -->
+      <label class="design-mode-toggle" title="Populate placeholder tiles locally — no Anthropic or Google API calls">
+        <input type="checkbox" id="designModeToggle" onchange="setDesignMode(this.checked)" />
+        <span>Design mode</span>
+      </label>
     </div>
+  </div>
+  <div class="masthead-right">
     <div class="session-dropdown-wrap" id="sessionDropdownWrap">
       <button class="session-btn" id="sessionBtn" onclick="toggleSessionMenu()">
         <span id="dateline"></span>
@@ -378,27 +601,72 @@
       </button>
       <div class="session-menu" id="sessionMenu"></div>
     </div>
-  </div>
-  <div class="masthead-right" id="apiKeyWrap">
-    <span class="key-label">API Key</span>
-    <input type="password" class="key-input" id="apiKey" placeholder="sk-ant-api03-..." />
+    <div class="mast-social">
+      <a href="https://www.instagram.com/tracylocke/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.8" cy="6.2" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/company/tracylocke/" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.24 8.16h4.52V23H.24V8.16zM8.34 8.16h4.33v2.03h.06c.6-1.14 2.08-2.34 4.28-2.34 4.58 0 5.42 3.01 5.42 6.92V23h-4.51v-7.29c0-1.74-.03-3.98-2.42-3.98-2.43 0-2.8 1.9-2.8 3.86V23H8.34V8.16z"/></svg>
+      </a>
+      <a href="mailto:hello@tracylocke.com" title="Email" aria-label="Email">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>
+      </a>
+    </div>
+    <div id="apiKeyWrap" style="display:flex;align-items:center;gap:10px;">
+      <span class="key-label">API Key</span>
+      <input type="password" class="key-input" id="apiKey" placeholder="sk-ant-api03-..." />
+    </div>
   </div>
 </header>
 
 <div class="shell">
+
+  <!-- INTRO SCROLL — parallax landing shown before a brand is picked -->
+  <div id="introScroll">
+    <div class="intro-edge-glow" id="introEdgeGlow"></div>
+    <section class="intro-panel intro-p1">
+      <div class="intro-headline" data-depth="1">When your<br>day ends</div>
+      <button class="intro-play-btn" onclick="event.stopPropagation(); openSizzleVideo()" title="Play sizzle video" aria-label="Play sizzle video">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="intro-hint">Scroll</div>
+    </section>
+    <section class="intro-panel intro-p2">
+      <div class="intro-headline" data-depth="1">Scouts<br>clock in</div>
+    </section>
+    <section class="intro-panel intro-p3">
+      <div class="intro-headline" data-depth="1">They do the<br>research you<br>didn&rsquo;t have<br>time to</div>
+    </section>
+    <section class="intro-panel intro-p4">
+      <div class="intro-headline" data-depth="1">
+        <span class="il il-sm">By morning,</span>
+        <span class="il il-lg">You&rsquo;re ahead</span>
+        <span class="il il-md">of the competition</span>
+      </div>
+      <button class="intro-run-btn" data-depth="0.5" onclick="introRunScout()">
+        <span class="intro-run-dot"></span>
+        Run Scouts
+      </button>
+    </section>
+  </div>
+
   <main class="main">
 
     <!-- EMPTY STATE -->
     <div class="empty-state" id="emptyState">
-      <div class="empty-eyebrow">Overnight signal intelligence</div>
-      <h1 class="empty-h1">Select a brand.<br><em>Scout</em> does the rest.</h1>
-      <p class="empty-tagline">We Don't Wait for the Brief. We Find it First.</p>
-      <p class="empty-sub">Pick a brand from the dropdown, enter your API key, and Scout scans culture and generates campaign ideas grounded in what's moving right now.</p>
+      <div class="editor-narrow" id="emptyStateDefault">
+        <div class="empty-eyebrow">Overnight signal intelligence</div>
+        <h1 class="empty-h1">Select a brand.<br><em>Scout</em> does the rest.</h1>
+        <p class="empty-tagline">We Don't Wait for the Brief. We Find it First.</p>
+        <p class="empty-sub">Pick a brand from the dropdown, enter your API key, and Scout scans culture and generates campaign ideas grounded in what's moving right now.</p>
+      </div>
+      <div id="emptyStateFeed" style="display:none; width:100%;"></div>
     </div>
 
     <!-- BRAND PAGE -->
     <div class="brand-editor" id="brandEditor">
 
+      <div class="editor-narrow">
       <!-- BRAND HERO -->
       <div class="brand-hero">
         <div class="brand-hero-eyebrow">Brand</div>
@@ -434,6 +702,8 @@
               + Add PDF
             </label>
             <button class="add-btn" onclick="showUrlRow()">+ Add URL</button>
+            <div id="productImageWrap" style="display:contents;"></div>
+            <div id="campaignImageWrap" style="display:contents;"></div>
           </div>
 
           <div class="url-row" id="urlRow" style="display:none;">
@@ -448,7 +718,7 @@
         <select id="ideaCount">
           <option value="10">10 ideas</option>
           <option value="20">20 ideas</option>
-          <option value="30">30 ideas</option>
+          <option value="30" selected>30 ideas</option>
         </select>
         <button class="run-btn" id="runBtn" onclick="runScout()">
           <span class="run-dot"></span>
@@ -458,16 +728,21 @@
 
       <div class="status-bar" id="statusBar"></div>
       <div class="error-bar" id="errorBar"></div>
+      </div>
 
       <!-- RESULTS -->
       <div class="results" id="results">
-        <div class="brief-header">
-          <div class="brief-title">Scout Brief</div>
-          <div class="brief-meta" id="briefMeta"></div>
+        <div class="brief-header editor-narrow">
+          <button class="liked-filter-btn" id="mainLikedFilterBtn" onclick="toggleLikedFilter('main')" title="Show only favorited ideas">
+            <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21s-6.716-4.35-9.428-7.938C.99 10.9 1 8.5 2.8 6.8a5 5 0 0 1 7.2.2L12 9l2-2a5 5 0 0 1 7.2-.2c1.8 1.7 1.81 4.1.228 6.262C18.716 16.65 12 21 12 21z"/></svg>
+            Favorites
+          </button>
         </div>
-        <div id="ideasContainer"></div>
-        <button class="source-log-toggle" id="logToggle" onclick="toggleLog()">Research log · Brand intel + Cultural scan</button>
-        <div class="source-log" id="sourceLog"></div>
+        <div id="ideasContainer" class="tile-grid"></div>
+        <div class="editor-narrow">
+          <button class="source-log-toggle" id="logToggle" onclick="toggleLog()">Research log · Brand intel + Cultural scan</button>
+          <div class="source-log" id="sourceLog"></div>
+        </div>
       </div>
 
     </div>
@@ -506,37 +781,84 @@ const STORE_KEY = 'scout_brands';
 function loadStore() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch { return {}; }
 }
-function saveStore(store) { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+function saveStore(store) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+  catch (e) { console.error('Failed to save brands — localStorage quota exceeded', e); }
+}
 
 // ── SESSION HISTORY
 const SESSIONS_KEY = 'scout_sessions';
+// Sessions now carry base64 tile images, which are much heavier than plain
+// text — a large cap (previously 200) reliably blows past the ~5-10MB
+// localStorage quota. When that happened, every write silently failed (caught
+// and swallowed), so images generated during a run were NEVER actually saved —
+// they only appeared to work because they were still in memory for that same
+// page load. Reopening the file later had nothing persisted. Capping lower,
+// plus the eviction-on-quota-error logic below, fixes that for good.
+const MAX_STORED_SESSIONS = 25;
+
 function loadSessions() {
   try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
 }
+
+// Writes the session list, and if the quota is exceeded, evicts the oldest
+// sessions (sessions are newest-first) one at a time and retries — so the
+// newest, most relevant data (and its images) always wins instead of silently
+// failing to save at all.
+function saveSessionsList(sessions) {
+  const list = sessions.slice(0, MAX_STORED_SESSIONS);
+  while (list.length) {
+    try {
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      list.pop(); // drop the oldest and retry
+    }
+  }
+  try { localStorage.removeItem(SESSIONS_KEY); } catch (e) {}
+  return false;
+}
+
 function saveSession(session) {
   const sessions = loadSessions();
-  sessions.unshift(session);
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions.slice(0, 200)));
+  sessions.unshift(session); // newest first
+  saveSessionsList(sessions);
+}
+
+// Persists a generated tile thumbnail onto its idea inside a saved session, so
+// the image is created once at scan time and reused forever after — reopening a
+// session (or the returning-user feed) never re-calls the image model, which
+// was previously producing a different random image on every visit.
+function persistTileImage(sessionId, ideaIndex, dataUrl) {
+  if (!sessionId) return;
+  const sessions = loadSessions();
+  const s = sessions.find(x => x.id === sessionId);
+  if (s && s.ideas && s.ideas[ideaIndex]) {
+    s.ideas[ideaIndex].thumbDataUrl = dataUrl;
+    saveSessionsList(sessions);
+  }
 }
 
 function renderSessionMenu() {
   const sessions = loadSessions();
   const menu = document.getElementById('sessionMenu');
+  const btn  = document.getElementById('sessionBtn');
   if (!sessions.length) {
     menu.innerHTML = '<div class="session-empty">No saved sessions yet.<br>Run Scout to generate ideas.</div>';
     return;
   }
+  // Group by date string
   const groups = {};
   sessions.forEach(s => {
     const d = s.date || 'Unknown';
     if (!groups[d]) groups[d] = [];
     groups[d].push(s);
   });
-  const todayLabel = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  const yesterdayLabel = new Date(Date.now()-864e5).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const today    = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const yesterday = new Date(Date.now()-864e5).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   menu.innerHTML = '<div class="session-menu-header">Session History</div>' +
     Object.entries(groups).map(([date, list]) => {
-      const label = date === todayLabel ? 'Today' : date === yesterdayLabel ? 'Yesterday' : date;
+      const label = date === today ? 'Today' : date === yesterday ? 'Yesterday' : date;
       return `<div class="session-group-label">${label}</div>` +
         list.map(s => `
           <div class="session-item" onclick="loadSession('${s.id}')">
@@ -558,6 +880,7 @@ window.toggleSessionMenu = function() {
   btn.classList.toggle('open', !isOpen);
 };
 
+// Close menu when clicking outside
 document.addEventListener('click', e => {
   if (!document.getElementById('sessionDropdownWrap').contains(e.target)) {
     document.getElementById('sessionMenu').classList.remove('open');
@@ -570,24 +893,26 @@ window.loadSession = function(id) {
   if (!session) return;
   document.getElementById('sessionMenu').classList.remove('open');
   document.getElementById('sessionBtn').classList.remove('open');
+  // Switch to the brand if it still exists
   if (session.brandId && brands[session.brandId]) {
     activeBrandId = session.brandId;
+    previewBrandId = session.brandId;
     renderDropdown();
     renderEditor();
   }
   if (session.sourceLog) {
     document.getElementById('sourceLog').textContent = session.sourceLog;
   }
-  renderIdeas(session.ideas, session.brandName);
+  renderIdeas(session.ideas, session.brandName, session.id);
 };
 
 // ── DEFAULT BRANDS (seeded on first load)
 const DEFAULT_BRANDS = [
   {
     id: 'bazooka',
-    name: 'Bazooka Brands',
+    name: 'Bazooka Candy Brands',
     url: 'https://www.bazookacandybrands.com/about-us/',
-    color: '#e8441a', colorDim: 'rgba(232,68,26,0.12)',
+    color: '#e8302a', colorDim: 'rgba(232,48,42,0.12)',
     sources: []
   },
   {
@@ -602,15 +927,14 @@ const DEFAULT_BRANDS = [
 // ── STATE
 let brands = loadStore();
 let activeBrandId = null;
+// Which brand's colors theme the intro/masthead while no brand is actively
+// open (null = default Bazooka theme). Set whenever the dropdown changes, even
+// though changing the dropdown no longer jumps straight into that brand's editor.
+let previewBrandId = null;
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-// Migrate old brand names
-for (const b of Object.values(brands)) {
-  if (b.name === 'Bazooka Candy Brands') b.name = 'Bazooka Brands';
-}
-
-// Seed default brands; always refresh color from defaults so corrections propagate
+// Seed default brands — always refresh color/colorDim from defaults so manual corrections propagate
 for (const def of DEFAULT_BRANDS) {
   if (!brands[def.id]) {
     brands[def.id] = { id: def.id, name: def.name, url: def.url, sources: [] };
@@ -622,109 +946,65 @@ for (const def of DEFAULT_BRANDS) {
 }
 saveStore(brands);
 
+// One-time migration: product reference images uploaded before compression was
+// added could be several MB each as raw base64 — one was found consuming
+// 3.85MB by itself, which crowded out nearly the whole localStorage quota and
+// caused every saved session to get silently evicted down to zero. Shrink any
+// oversized ones already sitting in storage so session history has room again.
+(async function migrateOversizedProductImages() {
+  const SIZE_THRESHOLD = 500 * 1024; // base64 chars — generous for an AI reference photo
+  let changed = false;
+  for (const id of Object.keys(brands)) {
+    for (const field of ['productImages', 'campaignImages']) {
+      const imgs = brands[id][field];
+      if (!imgs) continue;
+      for (let i = 0; i < imgs.length; i++) {
+        const img = imgs[i];
+        if (img.data && img.data.length > SIZE_THRESHOLD) {
+          try {
+            const compressed = await compressDataUrlImage(img.mime_type, img.data);
+            imgs[i] = { ...img, mime_type: compressed.mime_type, data: compressed.data };
+            changed = true;
+          } catch (e) { /* leave as-is if it fails to load/compress */ }
+        }
+      }
+    }
+  }
+  if (changed) saveStore(brands);
+})();
+
 // ── DROPDOWN
 function renderDropdown() {
   const sel = document.getElementById('brandSelect');
   const ids = Object.keys(brands);
+  // Cosmetic default: show Bazooka (or whichever brand was last previewed)
+  // pre-selected while no brand is actively open (landing intro/feed).
+  const displayId = activeBrandId || previewBrandId || (brands[EMPTY_STATE_BRAND_ID] ? EMPTY_STATE_BRAND_ID : null);
   sel.innerHTML = '<option value="">— select a brand —</option>' +
-    ids.map(id => `<option value="${id}"${activeBrandId===id?' selected':''}>${esc(brands[id].name||'Untitled')}</option>`).join('');
+    ids.map(id => `<option value="${id}"${displayId===id?' selected':''}>${esc(brands[id].name||'Untitled')}</option>`).join('');
 }
 
-// ── BRAND COLOR LOOKUP (no API call)
-const BRAND_COLORS = {
-  // Snack / Food
-  'doritos':        '#e8282a',
-  'mountain dew':   '#7ab800',
-  'gatorade':       '#f5a800',
-  'pepsi':          '#004b93',
-  'coca-cola':      '#f40009',
-  'coke':           '#f40009',
-  'red bull':       '#cc1e2c',
-  'monster':        '#82be00',
-  'cheetos':        '#f26522',
-  'frito-lay':      '#e8282a',
-  // Candy
-  'bazooka':        '#e8282a',
-  'ring pop':       '#e8282a',
-  'skittles':       '#e8282a',
-  'starburst':      '#f7a800',
-  'sour patch':     '#7ab800',
-  "reese's":        '#f26522',
-  'hershey':        '#6b3a2a',
-  'm&ms':           '#e8282a',
-  // Spirits / Beverage
-  'casamigos':      '#00897b',
-  'patron':         '#bfa96a',
-  'hennessy':       '#c8a96e',
-  'jack daniels':   '#1a1a1a',
-  'grey goose':     '#1b3a6b',
-  'modelo':         '#c8960c',
-  'corona':         '#f5c400',
-  'heineken':       '#006030',
-  // Tech / Gear
-  'otterbox':       '#f5c400',
-  'apple':          '#555555',
-  'samsung':        '#1428a0',
-  'google':         '#4285f4',
-  'meta':           '#0082fb',
-  'microsoft':      '#00a4ef',
-  'amazon':         '#ff9900',
-  'nike':           '#111111',
-  'adidas':         '#000000',
-  'jordan':         '#c8102e',
-  // Beauty / Fashion
-  'fenty':          '#c8102e',
-  'glossier':       '#f5a7b8',
-  'rare beauty':    '#c8102e',
-  'elf cosmetics':  '#00b140',
-  'ulta':           '#ff0090',
-  // Automotive
-  'ford':           '#003478',
-  'chevrolet':      '#d4a017',
-  'jeep':           '#1a5c38',
-  'ram':            '#c8102e',
-  'toyota':         '#eb0a1e',
-  // QSR / Fast Food
-  "mcdonald's":     '#ffc72c',
-  'taco bell':      '#702082',
-  'chick-fil-a':    '#e31837',
-  'chipotle':       '#a81612',
-  'subway':         '#008c15',
-  'wendy\'s':       '#e2203c',
-  'burger king':    '#f5a623',
-  'dominos':        '#006491',
-};
-
-function resolveBrandColor(name) {
-  const key = name.toLowerCase().trim();
-  // Exact or substring match
-  for (const [k, hex] of Object.entries(BRAND_COLORS)) {
-    if (key.includes(k) || k.includes(key)) return hex;
-  }
-  // Deterministic color from brand name (HSL with good saturation)
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  const hue = ((hash % 360) + 360) % 360;
-  // Convert HSL(hue, 70%, 52%) to hex
-  const h = hue / 360, s = 0.70, l = 0.52;
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const toHex = t => {
-    const c = t < 0 ? t+1 : t > 1 ? t-1 : t;
-    const v = c < 1/6 ? p+(q-p)*6*c : c < 1/2 ? q : c < 2/3 ? p+(q-p)*(2/3-c)*6 : p;
-    return Math.round(v*255).toString(16).padStart(2,'0');
-  };
-  return `#${toHex(h+1/3)}${toHex(h)}${toHex(h-1/3)}`;
-}
-
-function fetchBrandColor(brand) {
-  if (brand.color) return;
-  const hex = resolveBrandColor(brand.name).replace('#','');
-  brand.color = '#' + hex;
-  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
-  brand.colorDim = `rgba(${r},${g},${b2},0.12)`;
-  saveStore(brands);
-  applyBrandColor(brand);
+// ── BRAND COLOR
+async function fetchBrandColor(brand) {
+  const key = document.getElementById('apiKey')?.value?.trim();
+  if (!key || brand.color) return; // already fetched or no key yet
+  try {
+    const raw = await claudeCall(
+      key,
+      `You are a brand design expert. Respond with only a valid hex color code — nothing else. No explanation, no #, just 6 hex digits.`,
+      `What is the single most recognizable primary brand color for ${brand.name}? Return only the 6-digit hex code (no #).`,
+      16
+    );
+    const hex = raw.trim().replace(/^#/, '').match(/^[0-9a-fA-F]{6}$/)?.[0];
+    if (hex) {
+      brand.color = '#' + hex;
+      // rgba at 12% opacity for dark-mode tinted backgrounds
+      const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
+      brand.colorDim = `rgba(${r},${g},${b2},0.12)`;
+      saveStore(brands);
+      applyBrandColor(brand);
+    }
+  } catch(e) { /* silent fail — keep default orange */ }
 }
 
 function applyBrandColor(brand) {
@@ -733,44 +1013,88 @@ function applyBrandColor(brand) {
     root.style.setProperty('--signal', brand.color);
     root.style.setProperty('--signal-dim', brand.colorDim || '#fce8e2');
   } else {
-    root.style.setProperty('--signal', '#06e3fc');
-    root.style.setProperty('--signal-dim', 'rgba(6,227,252,0.1)');
+    root.style.setProperty('--signal', '#e8302a');
+    root.style.setProperty('--signal-dim', 'rgba(232,48,42,0.1)');
   }
 }
 
-// ── SELECT / NEW / DELETE BRAND
-window.selectBrand = function(id) {
+// Actually commits into a brand's full editor page (docs, run scout, etc).
+// Used by "Run Scouts" and by creating a new brand — not by the dropdown itself.
+function enterBrandEditor(id) {
   activeBrandId = id || null;
+  previewBrandId = activeBrandId;
   renderDropdown();
   renderEditor();
   if (activeBrandId && brands[activeBrandId]) {
     applyBrandColor(brands[activeBrandId]);
     fetchBrandColor(brands[activeBrandId]);
   }
+}
+
+// ── SELECT / NEW / DELETE BRAND
+// Changing the dropdown sends you back to the intro pages, themed to that
+// brand's color — it does not jump straight into the brand's editor. Use
+// "Run Scouts" (or picking a session from history) to actually enter a brand.
+window.selectBrand = function(id) {
+  activeBrandId = null;
+  previewBrandId = id || null;
+  renderDropdown();
+  renderEditor();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+  if (previewBrandId && brands[previewBrandId]) {
+    applyBrandColor(brands[previewBrandId]);
+    fetchBrandColor(brands[previewBrandId]);
+  } else {
+    applyBrandColor(brands[EMPTY_STATE_BRAND_ID] || null);
+  }
 };
 
 window.promptNewBrand = function() {
-  const name = prompt('Brand name:');
-  if (!name || !name.trim()) return;
-  const id = genId();
-  brands[id] = { id, name: name.trim(), sources: [] };
-  saveStore(brands);
-  activeBrandId = id;
-  renderDropdown();
-  renderEditor();
-  applyBrandColor(brands[id]);
-  fetchBrandColor(brands[id]);
+  document.getElementById('addBrandInput').value = '';
+  document.getElementById('addBrandOverlay').classList.add('visible');
+  setTimeout(() => document.getElementById('addBrandInput').focus(), 50);
 };
+
+window.closeAddBrandModal = function() {
+  document.getElementById('addBrandOverlay').classList.remove('visible');
+};
+
+window.submitAddBrand = function() {
+  const input = document.getElementById('addBrandInput');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  closeAddBrandModal();
+  const id = genId();
+  brands[id] = { id, name, sources: [] };
+  saveStore(brands);
+  enterBrandEditor(id);
+};
+
+// Close on backdrop click / Escape, submit on Enter (no Shift)
+document.getElementById('addBrandOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) window.closeAddBrandModal();
+});
+document.getElementById('addBrandInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.submitAddBrand(); }
+  if (e.key === 'Escape') { e.preventDefault(); window.closeAddBrandModal(); }
+});
 
 // ── EDITOR
 function renderEditor() {
   const editor = document.getElementById('brandEditor');
   const empty  = document.getElementById('emptyState');
+  const intro = document.getElementById('introScroll');
   if (!activeBrandId || !brands[activeBrandId]) {
     editor.classList.remove('visible'); empty.classList.remove('hidden');
-    applyBrandColor(null);
+    if (intro) intro.classList.add('visible');
+    // Theme (including the intro pages) follows whichever brand is currently
+    // previewed from the dropdown, defaulting to Bazooka's color.
+    const themeId = previewBrandId || EMPTY_STATE_BRAND_ID;
+    applyBrandColor(brands[themeId] || null);
+    renderEmptyStateFeed();
     return;
   }
+  if (intro) intro.classList.remove('visible');
   empty.classList.add('hidden'); editor.classList.add('visible');
   const b = brands[activeBrandId];
   applyBrandColor(b);
@@ -780,7 +1104,379 @@ function renderEditor() {
     b.url ? b.url : (srcCount ? `${srcCount} source${srcCount!==1?'s':''}` : 'No extra sources · Scout uses its own brand knowledge');
   document.getElementById('results').classList.remove('visible');
   renderSources();
+  renderProductImage();
+  renderCampaignImage();
 }
+
+// ── EMPTY STATE FEED — before a brand is picked, show the returning-user view:
+// every idea Scout generated for Bazooka in the last 7 days, as a browsable feed,
+// instead of marketing copy. Images are shown exactly as generated at scan time
+// (cached thumbDataUrl) — this feed never calls the image model itself, so it
+// never produces a different photo on a later visit.
+const EMPTY_STATE_BRAND_ID = 'bazooka';
+const EMPTY_STATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+function sessionTimestamp(s) {
+  if (typeof s.ts === 'number') return s.ts;
+  const parsed = Date.parse(s.date || '');
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+// Selecting Bazooka + jumping straight to a built 1-pager, from a feed tile's
+// Build button, without leaving the landing feed.
+window.feedBuildOnePager = function(i) {
+  activeBrandId = EMPTY_STATE_BRAND_ID;
+  previewBrandId = EMPTY_STATE_BRAND_ID;
+  renderDropdown();
+  applyBrandColor(brands[EMPTY_STATE_BRAND_ID]);
+  open1Pager(i);
+};
+
+function renderEmptyStateFeed() {
+  const emptyState = document.getElementById('emptyState');
+  const defaultBlock = document.getElementById('emptyStateDefault');
+  const feedBlock = document.getElementById('emptyStateFeed');
+  const themeId = previewBrandId || EMPTY_STATE_BRAND_ID;
+  // If there's no feed to show (a brand with no ideas yet, e.g. OtterBox, or
+  // Bazooka before its first scan), show nothing at all after the intro's
+  // final panel + Run Scouts button — no redundant fallback copy to scroll to.
+  if (themeId !== EMPTY_STATE_BRAND_ID) {
+    emptyState.classList.add('hidden');
+    defaultBlock.style.display = 'none';
+    feedBlock.style.display = 'none';
+    return;
+  }
+  const cutoff = Date.now() - EMPTY_STATE_WINDOW_MS;
+  const sessions = loadSessions()
+    .filter(s => s.brandId === EMPTY_STATE_BRAND_ID && s.ideas && s.ideas.length && sessionTimestamp(s) >= cutoff)
+    .sort((a, b) => sessionTimestamp(b) - sessionTimestamp(a));
+
+  if (!sessions.length) {
+    emptyState.classList.add('hidden');
+    defaultBlock.style.display = 'none';
+    feedBlock.style.display = 'none';
+    return;
+  }
+  emptyState.classList.remove('hidden');
+
+  // Flatten every session's ideas into one feed, newest session first, deduping
+  // by headline (a re-run in the same week can regenerate a similar idea).
+  const seen = new Set();
+  const ideas = [];
+  sessions.forEach(s => {
+    s.ideas.forEach(idea => {
+      const key = (idea.headline || '').trim().toLowerCase();
+      if (key && !seen.has(key)) { seen.add(key); ideas.push(idea); }
+    });
+  });
+
+  const brandName = brands[EMPTY_STATE_BRAND_ID]?.name || sessions[0].brandName || 'Bazooka';
+  const brandColor = brands[EMPTY_STATE_BRAND_ID]?.color || '#e8441a';
+  const brandRgb = hexToRgb(brandColor);
+  const heightClasses = ['tile-h1', 'tile-h2', 'tile-h3', 'tile-h4'];
+  const hasGoogleKey = !!((typeof SCOUT_KEYS !== 'undefined') && SCOUT_KEYS.google);
+
+  // Feed tiles reuse open1Pager/openIdeaModal/setFeedback, which all read from
+  // _lastIdeas — safe to set here since the feed only shows while no brand is
+  // actively selected (a real scan overwrites this the moment it runs).
+  _lastIdeas = ideas;
+  _lastBrand = brandName;
+
+  defaultBlock.style.display = 'none';
+  feedBlock.style.display = 'block';
+  const newest = sessions[0];
+  feedBlock.innerHTML = `
+    <div style="text-align:center; max-width:700px; margin:0 auto;">
+      <div class="empty-eyebrow">Welcome back</div>
+      <h1 class="empty-h1">${esc(brandName)}'s<br><em>latest signals</em></h1>
+      <p class="empty-tagline">Picked up right where you left off</p>
+      <p class="empty-sub" style="max-width:520px; margin:0 auto;">${ideas.length} idea${ideas.length!==1?'s':''} from the last 7 days for ${esc(brandName)}${newest.date ? ` — most recent scan ${esc(newest.date)}${newest.time ? ' · ' + esc(newest.time) : ''}` : ''}. Click an idea for detail, or select a brand above to run a fresh scan.</p>
+      <button class="liked-filter-btn" id="feedLikedFilterBtn" onclick="toggleLikedFilter('feed')" title="Show only favorited ideas" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 21s-6.716-4.35-9.428-7.938C.99 10.9 1 8.5 2.8 6.8a5 5 0 0 1 7.2.2L12 9l2-2a5 5 0 0 1 7.2-.2c1.8 1.7 1.81 4.1.228 6.262C18.716 16.65 12 21 12 21z"/></svg>
+        Favorites
+      </button>
+    </div>
+    <div class="tile-grid" id="emptyFeedGrid" style="margin-top:40px;"></div>
+  `;
+
+  const tileData = ideas.map((idea, i) => {
+    const heightClass = heightClasses[i % heightClasses.length];
+    const v = tileVariant(brandRgb, i);
+    const sub = esc(idea.humanTension || idea.handle || idea.whyNow || '');
+    const cached = idea.thumbDataUrl;
+    if (cached) {
+      return { heightClass, html: `
+        <div class="tile tile-image ${heightClass}" id="feedtile-${i}" style="--tile-bg:${v.bg}; background-image:url(&quot;${cached}&quot;)" onclick="feedBuildOnePager(${i})">
+          ${tileLikeHTML(i, EMPTY_STATE_BRAND_ID)}
+          <span class="tile-build" onclick="event.stopPropagation(); feedBuildOnePager(${i})">Build →</span>
+          <div class="tile-content" style="color:#fff;">
+            <div class="tile-eyebrow">${esc(idea.platform || '')}</div>
+            <div class="tile-headline">${esc(idea.headline)}</div>
+            <div class="tile-sub">${sub}</div>
+          </div>
+        </div>` };
+    }
+    return { heightClass, html: `
+      <div class="tile tile-color ${heightClass}" id="feedtile-${i}" style="--tile-bg:${v.bg}; color:${v.fg};" onclick="feedBuildOnePager(${i})">
+        ${tileLikeHTML(i, EMPTY_STATE_BRAND_ID)}
+        <span class="tile-build" style="background:rgba(0,0,0,0.18); border-color:${v.fgDim}; color:${v.fg};" onclick="event.stopPropagation(); feedBuildOnePager(${i})">Build →</span>
+        <div class="tile-content">
+          <div class="tile-eyebrow" style="color:${v.fgDim}">${esc(idea.platform || '')}</div>
+          <div class="tile-headline">${esc(idea.headline)}</div>
+          <div class="tile-sub" style="color:${v.fgDim}">${sub}</div>
+        </div>
+      </div>` };
+  });
+
+  const cols = getTileColumnCount();
+  const colHeights = new Array(cols).fill(0);
+  const colEls = Array.from({ length: cols }, () => { const d = document.createElement('div'); d.className = 'tile-col'; return d; });
+  tileData.forEach(({ html, heightClass }) => {
+    let target = 0;
+    for (let c = 1; c < cols; c++) if (colHeights[c] < colHeights[target]) target = c;
+    colHeights[target] += TILE_ASPECT_RATIO[heightClass] || 1;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html.trim();
+    colEls[target].appendChild(tmp.firstElementChild);
+  });
+  const grid = document.getElementById('emptyFeedGrid');
+  colEls.forEach(c => grid.appendChild(c));
+  observeTileReveals(grid);
+  applyLikedFilter('feed'); // re-sync the filter button + hidden tiles since the grid was just rebuilt
+}
+
+function renderProductImage() {
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  // migrate old single-image field to the array
+  if (b.productImage && !b.productImages) { b.productImages = [b.productImage]; delete b.productImage; saveStore(brands); }
+  const imgs = b.productImages || [];
+  const wrap = document.getElementById('productImageWrap');
+  wrap.innerHTML =
+    imgs.map((img, i) => `
+      <div class="add-btn" style="cursor:default;" title="${esc(img.analysis || img.name || '')}">
+        <img src="data:${img.mime_type};base64,${img.data}" alt="" style="width:16px;height:16px;object-fit:cover;border-radius:3px;flex-shrink:0;" />
+        Product ref ${imgs.length > 1 ? i+1 : ''}${img.analyzing ? ' (analyzing…)' : ''}
+        <button class="source-del" onclick="removeProductImage(${i})" style="margin-left:4px;">×</button>
+      </div>`).join('') +
+    `<label class="add-btn">
+      <input type="file" id="productImageInput" accept="image/*" multiple />
+      + Add Product Reference Image
+    </label>`;
+  document.getElementById('productImageInput').addEventListener('change', e => addProductImages(e.target.files));
+}
+
+// Downscales + re-encodes an already-decoded <img> onto a canvas, capped to
+// maxDim on the longest side, exported as JPEG. Shared by the upload path and
+// the one-time migration that shrinks images already sitting in storage.
+function compressDataUrlImage(mime, base64Data, maxDim = 1024, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const [, newMime, newData] = dataUrl.match(/^data:(.+?);base64,(.+)$/) || [];
+      if (newMime && newData) resolve({ mime_type: newMime, data: newData });
+      else reject(new Error('Failed to encode compressed image'));
+    };
+    img.onerror = reject;
+    img.src = `data:${mime};base64,${base64Data}`;
+  });
+}
+
+async function compressImageFile(file, maxDim = 1024, quality = 0.82) {
+  const dataUrl = await new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+  const [, mime, data] = dataUrl.match(/^data:(.+?);base64,(.+)$/) || [];
+  if (!mime || !data) throw new Error('Failed to read file');
+  return compressDataUrlImage(mime, data, maxDim, quality);
+}
+
+async function addProductImages(files) {
+  if (!activeBrandId || !files || !files.length) return;
+  const b = brands[activeBrandId];
+  b.productImages = b.productImages || [];
+  const newImgs = [];
+  for (const file of files) {
+    // A raw phone photo or screenshot can be several MB as base64 — one such
+    // upload was found consuming 3.85MB of localStorage by itself, crowding
+    // out nearly the entire quota and causing saved sessions to get evicted
+    // down to zero. Downscale + re-encode as JPEG before ever storing it.
+    let compressed;
+    try { compressed = await compressImageFile(file); }
+    catch (e) { continue; }
+    const img = { mime_type: compressed.mime_type, data: compressed.data, name: file.name, analyzing: true };
+    b.productImages.push(img);
+    newImgs.push(img);
+  }
+  saveStore(brands);
+  renderProductImage();
+
+  // One-time vision analysis per image, in the background — catalogs the pack
+  // shape, logo, graphics, color palette etc. so per-idea generation can later
+  // decide whether to reference the whole pack, just the logo, just a motif, etc.
+  const apiKey = document.getElementById('apiKey').value.trim();
+  newImgs.forEach(img => {
+    analyzeProductImage(apiKey, b.name, img).then(analysis => {
+      img.analysis = analysis;
+      img.analyzing = false;
+      saveStore(brands);
+      renderProductImage();
+    });
+  });
+}
+
+async function analyzeProductImage(apiKey, brandName, img) {
+  if (!apiKey) return null;
+  try {
+    const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: img.mime_type, data: img.data } },
+            { type: 'text', text: `This is a real product photo for the brand ${brandName}. Catalog it for use as an image-generation reference by a different AI later. Return short labeled bullet points:
+PRODUCT: what it is.
+PACK SHAPE/FORM: silhouette and structure.
+LOGO/WORDMARK: how it appears, where, style.
+COLOR PALETTE: dominant colors.
+KEY GRAPHIC ELEMENTS: distinctive patterns, characters, or imagery on the packaging.
+MATERIAL/FINISH: texture, gloss, transparency, etc.
+Be concrete and specific, not generic. This will be used later to decide, per campaign concept, whether to reference the whole pack, just the logo, just a graphic motif, or just the color palette.` }
+          ]
+        }]
+      }),
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim() || null;
+  } catch { return null; }
+}
+
+window.removeProductImage = function(i) {
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  (b.productImages || []).splice(i, 1);
+  saveStore(brands);
+  renderProductImage();
+};
+
+// ── CAMPAIGN REFERENCE IMAGES — parallel to product references, but a STYLE
+// reference: examples of the art direction, layout, typography feel, graphics,
+// and comms treatment we want the AI-generated campaign mockups to emulate
+// (as opposed to the product ref, which is about the product's true form).
+function renderCampaignImage() {
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  const imgs = b.campaignImages || [];
+  const wrap = document.getElementById('campaignImageWrap');
+  if (!wrap) return;
+  wrap.innerHTML =
+    imgs.map((img, i) => `
+      <div class="add-btn" style="cursor:default;" title="${esc(img.analysis || img.name || '')}">
+        <img src="data:${img.mime_type};base64,${img.data}" alt="" style="width:16px;height:16px;object-fit:cover;border-radius:3px;flex-shrink:0;" />
+        Campaign ref ${imgs.length > 1 ? i+1 : ''}${img.analyzing ? ' (analyzing…)' : ''}
+        <button class="source-del" onclick="removeCampaignImage(${i})" style="margin-left:4px;">×</button>
+      </div>`).join('') +
+    `<label class="add-btn" title="Upload examples of art direction, layout, graphics, or comms to steer how each idea's mockups are generated">
+      <input type="file" id="campaignImageInput" accept="image/*" multiple />
+      + Add Campaign Reference Image
+    </label>`;
+  document.getElementById('campaignImageInput').addEventListener('change', e => addCampaignImages(e.target.files));
+}
+
+async function addCampaignImages(files) {
+  if (!activeBrandId || !files || !files.length) return;
+  const b = brands[activeBrandId];
+  b.campaignImages = b.campaignImages || [];
+  const newImgs = [];
+  for (const file of files) {
+    let compressed;
+    try { compressed = await compressImageFile(file); }
+    catch (e) { continue; }
+    const img = { mime_type: compressed.mime_type, data: compressed.data, name: file.name, analyzing: true };
+    b.campaignImages.push(img);
+    newImgs.push(img);
+  }
+  saveStore(brands);
+  renderCampaignImage();
+
+  // Cataloged once on upload as a STYLE reference (art direction / layout /
+  // graphics / comms), so per-idea generation can steer the mockup's look.
+  const apiKey = document.getElementById('apiKey').value.trim();
+  newImgs.forEach(img => {
+    analyzeCampaignImage(apiKey, b.name, img).then(analysis => {
+      img.analysis = analysis;
+      img.analyzing = false;
+      saveStore(brands);
+      renderCampaignImage();
+    });
+  });
+}
+
+async function analyzeCampaignImage(apiKey, brandName, img) {
+  if (!apiKey) return null;
+  try {
+    const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: img.mime_type, data: img.data } },
+            { type: 'text', text: `This is a CAMPAIGN / COMMS STYLE reference for the brand ${brandName} — an example of the art direction, layout, and creative treatment we want AI-generated campaign mockups, graphics, and comms to emulate. Catalog it as a STYLE reference (not a product photo). Return short labeled bullet points:
+ART DIRECTION: overall aesthetic, mood, era, energy.
+LAYOUT & COMPOSITION: how elements are arranged, framing, use of negative space, focal hierarchy.
+TYPOGRAPHY & GRAPHICS: type treatment, graphic devices, motifs, iconography (describe the style, not the exact words).
+COLOR & LIGHTING: palette, contrast, lighting style, grade.
+MEDIUM / FORMAT: what kind of comms this is (OOH, social post, poster, packaging, key visual, etc.) and its finish.
+Be concrete and specific. This will be used later to steer how AI-generated campaign mockups and graphics for each idea should look and feel.` }
+          ]
+        }]
+      }),
+    });
+    if (!res.ok) return null;
+    const d = await res.json();
+    return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim() || null;
+  } catch { return null; }
+}
+
+window.removeCampaignImage = function(i) {
+  if (!activeBrandId) return;
+  const b = brands[activeBrandId];
+  (b.campaignImages || []).splice(i, 1);
+  saveStore(brands);
+  renderCampaignImage();
+};
 
 function renderSources() {
   if (!activeBrandId) return;
@@ -799,13 +1495,16 @@ function renderSources() {
   let sl = wrap.querySelector('.source-list');
   if (!sl) { sl = document.createElement('div'); sl.className = 'source-list'; wrap.appendChild(sl); }
   sl.innerHTML = sources.map((s,i) => `
-    <div class="source-row">
-      <span class="source-icon">${s.type==='url'?'🌐':'📄'}</span>
-      <span class="source-name">${esc(s.name)}</span>
-      <span class="source-badge ${s.status==='reading'?'badge-reading':s.status==='done'?'badge-done':'badge-error'}">
-        ${s.status==='reading'?'reading…':s.status==='done'?s.text.length.toLocaleString()+' chars':'error'}
-      </span>
-      <button class="source-del" onclick="removeSource(${i})">×</button>
+    <div class="source-item">
+      <div class="source-row">
+        <span class="source-icon">${s.type==='url'?'🌐':'📄'}</span>
+        <span class="source-name">${esc(s.name)}</span>
+        <span class="source-badge ${s.status==='reading'?'badge-reading':s.status==='done'?'badge-done':'badge-error'}">
+          ${s.status==='reading'?'reading…':s.status==='done'?s.text.length.toLocaleString()+' chars':'error'}
+        </span>
+        <button class="source-del" onclick="removeSource(${i})">×</button>
+      </div>
+      ${s.status==='error' && s.error ? `<div class="source-error-detail">${esc(s.error)}</div>` : ''}
     </div>`).join('');
 }
 
@@ -863,22 +1562,29 @@ window.fetchUrl = async function() {
   async function tryFetch(url) {
     // Try Jina Reader v2 (more permissive endpoint)
     const endpoints = [
-      `https://r.jina.ai/${url}`,
-      `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+      { name: 'Jina Reader', url: `https://r.jina.ai/${url}` },
+      { name: 'AllOrigins', url: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}` },
     ];
+    // Collect the REAL reason each proxy failed instead of discarding it — the
+    // old code silently swallowed every attempt's actual error and always threw
+    // the same generic "all attempts failed" message, so there was no way to
+    // tell a CORS/extension block apart from the proxy itself being down.
+    const failures = [];
     for (const ep of endpoints) {
       try {
-        const res = await fetch(ep, { headers: { 'Accept': 'text/plain' } });
-        if (!res.ok) continue;
+        const res = await fetchWithTimeout(ep.url, { headers: { 'Accept': 'text/plain' } }, 25000);
+        if (!res.ok) { failures.push(`${ep.name}: HTTP ${res.status}`); continue; }
         const body = await res.text();
         // allorigins wraps in JSON
-        if (ep.includes('allorigins')) {
+        if (ep.url.includes('allorigins')) {
           try { return JSON.parse(body).contents || body; } catch { return body; }
         }
         return body;
-      } catch { continue; }
+      } catch (err) {
+        failures.push(`${ep.name}: ${err.message}`);
+      }
     }
-    throw new Error('All fetch attempts failed. Try a PDF instead, or paste the URL into a PDF and upload that.');
+    throw new Error(`Both fetch proxies failed — ${failures.join(' · ')}. Try a PDF instead, or paste the URL into a PDF and upload that.`);
   }
 
   try {
@@ -890,7 +1596,10 @@ window.fetchUrl = async function() {
     document.getElementById('urlRow').style.display = 'none';
   } catch(e) {
     src.status = 'error';
-    src.name = urlVal + ' (failed — ' + e.message + ')';
+    // Kept separate from .name (which gets ellipsis-truncated in the UI) so the
+    // actual reason is always fully visible instead of being cut off exactly
+    // where the useful part starts.
+    src.error = e.message;
   }
   saveStore(brands); renderSources(); renderDropdown();
   btn.disabled = false; btn.textContent = 'Fetch';
@@ -922,25 +1631,60 @@ function clearStatus() { statusBar.classList.remove('visible'); }
 function setError(m)  { errorBar.textContent = m; errorBar.classList.add('visible'); }
 function clearError() { errorBar.classList.remove('visible'); }
 
+// Every API call in this app used a plain fetch() with no timeout — if the
+// server ever stalls (or a web-search-heavy request just runs long), the
+// promise hangs forever with no recovery path and the UI sits on "Scanning…"
+// indefinitely. This wraps fetch with an AbortController so a stalled request
+// surfaces a clear, catchable error instead.
+async function fetchWithTimeout(url, options = {}, timeoutMs = 100000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error(`Request timed out after ${Math.round(timeoutMs / 1000)}s — the API may be slow or unresponsive right now. Please try again.`);
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function claudeCall(apiKey, systemPrompt, userPrompt, maxTokens=2048) {
   let res;
+  // 20ms/token (164s for an 8192-token request) still wasn't enough for a full
+  // 20-idea generation pass — that's genuinely a lot of output (20 detailed JSON
+  // objects), and Claude's real throughput under load can run well under
+  // 50 tokens/sec. Floored at the old 90s baseline so smaller calls never get
+  // LESS time than before; the multiplier/cap now give the biggest call (idea
+  // generation) real headroom instead of guessing again after every failure.
+  const timeoutMs = Math.min(320000, Math.max(90000, maxTokens * 35));
+  const body = JSON.stringify({
+    model: 'claude-sonnet-4-6',
+    max_tokens: maxTokens,
+    messages: [{ role: 'user', content: systemPrompt + '\n\n' + userPrompt }],
+  });
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-api-key': apiKey,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true',
+  };
+  // One automatic retry on timeout — a single stalled attempt shouldn't force
+  // the user to redo every earlier phase from scratch.
   try {
-    res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: maxTokens,
-        messages: [{ role: 'user', content: systemPrompt + '\n\n' + userPrompt }],
-      }),
-    });
-  } catch(netErr) {
-    throw new Error(`Network error — check your internet connection and that your API key is valid. (${netErr.message})`);
+    res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body }, timeoutMs);
+  } catch (firstErr) {
+    if (firstErr.name === 'AbortError' || /timed out/i.test(firstErr.message)) {
+      try {
+        res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body }, timeoutMs);
+      } catch (netErr) {
+        throw new Error(`Network error — check your internet connection and that your API key is valid. (${netErr.message})`);
+      }
+    } else {
+      throw new Error(`Network error — check your internet connection and that your API key is valid. (${firstErr.message})`);
+    }
   }
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
@@ -949,6 +1693,124 @@ async function claudeCall(apiKey, systemPrompt, userPrompt, maxTokens=2048) {
   }
   const d = await res.json();
   return d.content[0].text.trim();
+}
+
+// ── DESIGN MODE (temporary) — when on, Run Scout and the 1-pager build use
+// locally-generated placeholder content instead of hitting any API, so UI work
+// doesn't burn Anthropic/Google credits. Toggle persists across reloads.
+const DESIGN_MODE_KEY = 'scout_design_mode';
+function isDesignMode() { return localStorage.getItem(DESIGN_MODE_KEY) === '1'; }
+window.setDesignMode = function(on) {
+  localStorage.setItem(DESIGN_MODE_KEY, on ? '1' : '0');
+};
+
+// Golden-angle hue rotation gives distinct, pleasing colors per tile so the
+// placeholder grid reads like a real set of varied campaign images.
+function designPlaceholderImage(i) {
+  const hue = Math.round((i * 137.508) % 360);
+  const hue2 = (hue + 38) % 360;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='1000' viewBox='0 0 800 1000'>
+    <defs>
+      <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+        <stop offset='0' stop-color='hsl(${hue},58%,44%)'/>
+        <stop offset='1' stop-color='hsl(${hue2},62%,20%)'/>
+      </linearGradient>
+    </defs>
+    <rect width='800' height='1000' fill='url(#g)'/>
+    <circle cx='${140 + (i*90)%520}' cy='${220 + (i*130)%420}' r='${180 + (i*37)%120}' fill='hsl(${hue},70%,62%)' opacity='0.22'/>
+    <circle cx='${560 - (i*70)%400}' cy='${700 - (i*90)%360}' r='${120 + (i*53)%140}' fill='hsl(${hue2},55%,30%)' opacity='0.35'/>
+    <rect x='${(i*110)%600}' y='${(i*160)%700}' width='260' height='260' transform='rotate(${(i*33)%360} 130 130)' fill='hsl(${hue},65%,55%)' opacity='0.12'/>
+    <text x='40' y='960' font-family='monospace' font-size='34' fill='rgba(255,255,255,0.35)' letter-spacing='3'>PLACEHOLDER ${String(i+1).padStart(2,'0')}</text>
+  </svg>`;
+  // base64 (SVG is ASCII-only, so btoa is safe) — avoids the literal parens/
+  // quotes that encodeURIComponent leaves in and that would break url(...).
+  return 'data:image/svg+xml;base64,' + btoa(svg.replace(/\s+/g, ' ').trim());
+}
+
+const _DM_HEADLINES = [
+  'The Midnight Refill','Proof of Purchase, Proof of Life','Unskippable by Design','The Last Analog Ritual',
+  'Loud Quitting, Sweetly','Return to Sender','The Anti-Algorithm Aisle','Screenshot This Feeling',
+  'A Receipt Worth Framing','The 3AM Snack Accord','Nostalgia on Tap','Certified Fresh Regret',
+  'The Group Chat Drop','Handheld Heirlooms','No Notes, Just Vibes','The Slow Unboxing',
+  'Everyone Gets a Cameo','The Feed Fatigue Cure','Sold Out in Seconds','Terms & Delicious',
+  'The Loyalty Loophole','Wrapped, Not Filtered','A Flavor With a Backstory','The Comeback Bracket',
+  'Permission to Be Basic','The Snackable Summit','Untraceable, Unforgettable','Proudly Low-Res',
+  'The Analog Encore','Built for the Rewatch','The Waitlist Is the Point','Sponsored by Serotonin',
+];
+const _DM_PLATFORMS = ['TIKTOK // OOH','INSTAGRAM // RETAIL','YOUTUBE // PODCAST','PHONE (IVR) // OOH','SOCIAL // EXPERIENTIAL','PACKAGING // TIKTOK','DIRECT MAIL // SOCIAL','SNAP // IN-STORE'];
+const _DM_FORMATS = ['social stunt','product drop + OOH','cultural intervention','limited packaging run','creator seeding','earned-media stunt','pop-up experience','interactive filter'];
+const _DM_TENSIONS = [
+  'We crave things that feel scarce, but everything is one tap away and nothing feels earned anymore.',
+  'We want to be surprised, yet every feed is tuned to give us exactly what we already expected.',
+  'We say we hate ads, but we will happily line up for a drop that makes us feel like insiders.',
+  'We miss the small rituals that phones quietly replaced, and we do not know how to ask for them back.',
+  'We perform spontaneity online while privately craving something that actually feels unplanned.',
+  'We want nostalgia without the cringe — the feeling of then, made for the person we are now.',
+];
+const _DM_WHYNOW = [
+  'A cultural swing back toward analog and tactile experiences makes a physical ritual feel fresh right now.',
+  'Feed fatigue is peaking, so an unskippable real-world moment cuts through where another ad cannot.',
+  'A wave of Y2K nostalgia is cresting this quarter, making the throwback framing land at its sharpest.',
+];
+const _DM_EXECUTION = [
+  'Seed the drop through micro-creators a week early, then release a single limited run that sells through in minutes. Capture the frenzy as earned content and rebroadcast it as the campaign itself.',
+  'Install a working analog vending moment in three high-traffic cities. Every interaction prints a shareable keepsake, turning a physical act into a feed-native artifact without a screen in sight.',
+  'Partner with a beloved legacy IP for a co-branded packaging run. Hide a rotating cast of collectible inserts so the reveal, not the product, becomes the thing people post.',
+];
+const _DM_SIGNALS = ['scarcity culture, drop economy, Y2K revival','feed fatigue, analog nostalgia, tactile media','insider status, creator seeding, earned media','ritual loss, anti-algorithm, slow media'];
+const _DM_RIGOR = ['Strong Backbone','Promising but Soft','Execution-Led'];
+const _DM_RIGORNOTE = ['Real tension, cleanly reducible — sharpen the mechanic and it holds.','Good instinct; the insight needs one more turn to feel inevitable.','The execution carries it — make sure the idea survives without the stunt.'];
+const _DM_COMMERCE = ['Award Contender','Solid Performer','Needs a Hook'];
+const _DM_COMMERCENOTE = ['Clear mechanic, measurable lift, and creative bravery — jury-worthy.','Sound commercial logic; likely to drive results even if it won\'t win metal.','Interesting, but the path from attention to sales needs to be drawn in.'];
+
+function pick(arr, i) { return arr[i % arr.length]; }
+
+function buildPlaceholderIdeas(count) {
+  const ideas = [];
+  for (let i = 0; i < count; i++) {
+    const score = 10 - (i % 6); // 10..5 descending-ish, varied
+    ideas.push({
+      headline: pick(_DM_HEADLINES, i),
+      handle: 'Make the ordinary feel earned',
+      humanTension: pick(_DM_TENSIONS, i),
+      platform: pick(_DM_PLATFORMS, i),
+      format: pick(_DM_FORMATS, i),
+      whyNow: pick(_DM_WHYNOW, i),
+      execution: pick(_DM_EXECUTION, i),
+      score,
+      sourceSignals: pick(_DM_SIGNALS, i),
+      rigorLabel: pick(_DM_RIGOR, i),
+      rigorNote: pick(_DM_RIGORNOTE, i),
+      rigorScore: 9 - (i % 4),
+      commerceLabel: pick(_DM_COMMERCE, i),
+      commerceNote: pick(_DM_COMMERCENOTE, i),
+      commerceScore: 9 - ((i+2) % 4),
+      thumbDataUrl: designPlaceholderImage(i), // set → renderIdeas skips image generation
+      _placeholder: true,
+    });
+  }
+  return ideas;
+}
+
+function runDesignMode(count) {
+  const b = brands[activeBrandId];
+  clearError();
+  const ideas = buildPlaceholderIdeas(count);
+  const now = new Date();
+  const sessionId = genId();
+  saveSession({
+    id: sessionId,
+    brandId: activeBrandId,
+    brandName: b.name,
+    ts: now.getTime(),
+    date: now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),
+    time: now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
+    ideas,
+    sourceLog: 'DESIGN MODE — placeholder content, no API calls.',
+    designMode: true,
+  });
+  renderIdeas(ideas, b.name, sessionId);
+  clearStatus();
 }
 
 // ── RUN (3-phase pipeline)
@@ -961,6 +1823,10 @@ window.runScout = async function() {
   document.getElementById('results').classList.remove('visible');
 
   if (!b.name) { setError('Give this brand a name first.'); return; }
+
+  // Design mode: local placeholders only, zero API usage. No key required.
+  if (isDesignMode()) { runDesignMode(count); return; }
+
   if (!apiKey) { setError('Enter your Anthropic API key (top right).'); return; }
 
   const btn = document.getElementById('runBtn');
@@ -971,19 +1837,13 @@ window.runScout = async function() {
   const extraDocs = ready.length
     ? `\n\nADDITIONAL BRAND DOCUMENTS PROVIDED:\n${ready.map((s,i)=>`--- Source ${i+1}: ${s.name} ---\n${s.text.slice(0,4000)}`).join('\n\n')}`
     : '';
-  const autoFocus = /bazooka/i.test(b.name)
-    ? `Focus on Ring Pop, Juicy Drop, Push Pop, and Wandr — not Bazooka Gum. Target Gen Z nostalgia and Gen Alpha audiences.`
-    : '';
-  const focusNote = (b.focus?.trim() || autoFocus)
-    ? `\n\nBRAND FOCUS DIRECTIVE (follow this precisely):\n${b.focus?.trim() || autoFocus}`
-    : '';
 
   try {
     // ── PHASE 1: Brand Intelligence (from Claude's knowledge + optional docs)
     setStatus('<span class="pulse-dot"></span> Phase 1 of 5 · Building brand intelligence…');
     const brandIntel = await claudeCall(
       apiKey,
-      `You are a senior brand strategist and cultural analyst at a top creative agency. You have deep knowledge of brands, their histories, audiences, and cultural positioning. Build a sharp, honest brand brief from your own knowledge. Be specific — no generic marketing language.`,
+      `You are a senior brand strategist and cultural analyst at a top creative agency. You have deep knowledge of brands, their histories, audiences, and cultural positioning. Build a sharp, honest brand brief from your own knowledge. Be specific — no generic marketing language.${extraDocs ? ' The user has also provided source documents below — these may describe products, sub-brands, or launches that are NEW and not in your training data. Treat them as ground truth and name them specifically; do not let them get generalized away in your synthesis.' : ''}`,
       `Brand: ${b.name}
 
 Using your knowledge of ${b.name}, build a complete brand brief:
@@ -994,17 +1854,17 @@ Using your knowledge of ${b.name}, build a complete brand brief:
 4. CULTURAL EQUITY: What cultural moments, subcultures, aesthetics, or movements this brand authentically owns or can credibly enter
 5. RECENT TERRITORY: Notable campaigns, activations, collabs, or cultural moves this brand has made in the last 1-2 years
 6. WHITE SPACE: Where this brand hasn't played yet — the untapped territory
-7. HARD RULES: What this brand must never do${focusNote}${extraDocs}
+7. HARD RULES: What this brand must never do${extraDocs ? '\n8. FROM PROVIDED DOCUMENTS: List every specific product, sub-brand, launch, or fact named in the documents below, by name. This section must not be skipped if documents are provided.' : ''}${extraDocs}
 
 Be direct, specific, and honest. This brief feeds idea generation.`,
       1500
     );
 
-    // ── PHASE 2: Cultural Scan (live web search)
-    setStatus('<span class="pulse-dot"></span> Phase 2 of 5 · Scanning live cultural signals…');
+    // ── PHASE 2: Cultural Scan (live web search, 12-month horizon)
+    setStatus('<span class="pulse-dot"></span> Phase 2 of 5 · Scanning cultural signals…');
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     const oneYearOut = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    const culturalScanRaw = await fetch('https://api.anthropic.com/v1/messages', {
+    const culturalScanRaw = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1014,18 +1874,17 @@ Be direct, specific, and honest. This brief feeds idea generation.`,
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1800,
-        tools: [{
-          type: 'web_search_20260209',
-          name: 'web_search',
-          max_uses: 3,
-        }],
-        system: `You are a cultural intelligence analyst at a top creative agency. Run 2-3 targeted web searches, then produce a tight cultural scan. Prioritize recency and specificity. Be concise — bullet points over paragraphs.`,
+        max_tokens: 1300,
+        // Trimmed from 3→2 searches and 7→4 sections (dropped brand/collab landscape,
+        // micro-trends, and future signals — lower marginal value for idea generation,
+        // and each extra section/search round-trip adds real wall-clock time here).
+        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 2 }],
+        system: `You are a cultural intelligence analyst at a top creative agency. Run 1-2 targeted web searches, then produce a tight cultural scan. Prioritize recency and specificity. Be concise — bullet points over paragraphs.`,
         messages: [{
           role: 'user',
-          content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.${focusNote}
+          content: `Today is ${today}. Brand we are developing ideas for: ${b.name}.
 
-Search the web and produce a comprehensive live cultural scan from NOW through ${oneYearOut} (the next 12 months). Think like a trend agency + social listening platform + futures forecaster. Include:
+Search the web and produce a focused live cultural scan from NOW through ${oneYearOut} (the next 12 months). Think like a trend agency + social listening platform + futures forecaster. Include:
 
 1. TRENDING NOW: What is the internet, social media, and culture talking about THIS WEEK? Specific viral moments, memes, controversies, conversations — name them with real details.
 
@@ -1035,18 +1894,15 @@ Search the web and produce a comprehensive live cultural scan from NOW through $
 
 4. PLATFORM TRENDS: What formats and trends are exploding on TikTok, Instagram, YouTube, X, and emerging platforms right now? Name specific creators, sounds, formats.
 
-5. BRAND & COLLAB LANDSCAPE: What brand collabs, celebrity partnerships, and co-branding moves are generating buzz? What drops, launches, or campaigns are coming up in the next 12 months?
-
-6. EMERGING SUBCULTURES & MICRO-TRENDS: What niche communities or aesthetics are about to go mainstream? What's the next big thing that brands haven't tapped yet?
-
-7. FUTURE SIGNALS: What cultural, tech, or behavioral shifts are building momentum that will peak in the next 6-12 months?
-
-Search thoroughly. Name real events, real dates, real cultural figures. This feeds campaign idea generation for ${b.name}.`,
+Search efficiently — 1-2 searches is enough. Name real events, real dates, real cultural figures. This feeds campaign idea generation for ${b.name}.`,
         }],
       }),
-    });
+    }, 240000); // raised as a safety net — web-search calls can legitimately run long, this just stops a truly stuck request from hanging forever
     const culturalScanData = await culturalScanRaw.json();
-    const culturalScan = (culturalScanData.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n') || 'Cultural scan unavailable.';
+    const culturalScan = (culturalScanData.content || [])
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('\n') || 'Cultural scan unavailable.';
 
     // ── PHASE 2.5: Award Intelligence Scan
     setStatus('<span class="pulse-dot"></span> Phase 3 of 5 · Scanning award-winning intelligence…');
@@ -1084,30 +1940,33 @@ Before any idea lands, ask: Is this already in the category? Is this just polish
 
     const ideasRaw = await claudeCall(
       apiKey,
-      `You are a world-class creative director, CMO, and brand strategist who has won at Cannes and built culturally resonant campaigns. ${BARRY_PRINCIPLES}`,
-      `Generate exactly ${count} campaign ideas for ${b.name} that connect the brand to what is happening in culture RIGHT NOW.${focusNote}
+      `You are a world-class creative director, CMO, and brand strategist who has won at Cannes and built culturally resonant campaigns. ${BARRY_PRINCIPLES}${extraDocs ? ` The user has provided source documents for this specific assignment. Those documents ARE the assignment — every single idea you produce must be about the specific product, sub-brand, or launch described in them. Do not fall back on the brand's broader legacy portfolio or general brand history; that is background only, not the subject.` : ''}`,
+      `${extraDocs
+        ? `Generate exactly ${count} campaign ideas — ALL ${count} of them, with zero exceptions — for the SPECIFIC product/sub-brand/launch described in the PROVIDED BRAND DOCUMENTS below. This is not a suggestion or a majority target: every single idea's headline and execution must be explicitly about that specific product/launch by name. Do not generate any idea about ${b.name}'s broader legacy brand or other products — that is out of scope for this run.`
+        : `Generate exactly ${count} campaign ideas for ${b.name} that connect the brand to what is happening in culture RIGHT NOW.`}
 
-═══ BRAND INTELLIGENCE ═══
-${brandIntel}
+═══ ${extraDocs ? 'PROVIDED BRAND DOCUMENTS — THIS IS THE ASSIGNMENT (the specific product/launch every idea must be about)' : 'BRAND INTELLIGENCE'} ═══
+${extraDocs ? extraDocs.trim() : brandIntel}
 
-═══ LIVE CULTURAL SCAN ═══
-${culturalScan}${buildFeedbackPrompt()}
+═══ ${extraDocs ? 'BRAND BACKGROUND (context only — do not build ideas about this instead of the assignment above)' : 'LIVE CULTURAL SCAN'} ═══
+${extraDocs ? brandIntel : culturalScan}${buildFeedbackPrompt()}
+
+═══ LIVE CULTURAL SCAN (use only to sharpen timing/framing for the assignment above — not a substitute subject) ═══
+${culturalScan}
 
 ═══ AWARD-WINNING INTELLIGENCE ═══
 ${awardIntel}
 
 ═══ GENERATION RULES ═══
 Every idea must:
-- Start from a REAL human tension OR aspiration — not a demographic, not a product feature. Something people genuinely feel or want.
-- Be rooted in a SPECIFIC cultural moment from the scan above
+- Start from a REAL human tension — not a demographic, not a product feature. A genuine tension people feel.
+${extraDocs ? `- MANDATORY: Be built directly around the specific product/sub-brand/launch named in the PROVIDED BRAND DOCUMENTS above. Every idea, no exceptions. If you find yourself writing an idea that isn't specifically about that product, discard it and write a different one that is.` : `- Be rooted in a SPECIFIC cultural moment from the scan above`}
 - Pass the reduction test: can you express it in 8 words or fewer?
 - Be execution-independent: the idea works across channels, not just one format
 - Avoid category conventions — what does every brand in this space do? Do the opposite.
 - Think beyond ads: stunts, partnerships, product innovations, cultural interventions, earned media, drops, experiences
 - Have a clear commerce angle: how does it drive sales, brand equity, or measurable business results?
 - Ask: would this win a Cannes Creative Commerce Lion? Would it pass an Effie jury?
-
-TONE CALIBRATION: Lean into buzz, energy, and excitement. Embrace technology (including AI), cultural obsessions, and what people are rushing toward. Not every idea needs to be a counter-cultural statement or rooted in anxiety — bold, optimistic, hype-driven ideas win too. Think less "anti-" and more "pro-future." Ideas should feel exciting to share, not just smart to approve.
 
 Score 1–10 for breakthrough potential. Be brutal — a 10 is genuinely Cannes-worthy and most ideas aren't.
 
@@ -1125,16 +1984,26 @@ Return a JSON array with exactly ${count} objects:
 }
 
 Rank by score descending. Return ONLY the JSON array, no markdown.`,
-      8192
+      // Flat 8192 was fine for 10 ideas but truncates mid-string for 20-30 —
+      // each detailed idea object realistically runs 400-550+ tokens, so 20-30
+      // of them can genuinely exceed 8192 before the model finishes writing
+      // valid JSON. That's what "Unterminated string in JSON" actually means:
+      // the response got cut off by the token limit, not a timeout and not
+      // related to context window (which is input capacity, not output).
+      Math.min(16000, Math.max(8192, count * 550))
     );
 
     let ideas;
     try { ideas = JSON.parse(ideasRaw); }
-    catch { const m = ideasRaw.match(/\[[\s\S]*\]/); ideas = m ? JSON.parse(m[0]) : null; }
-    if (!ideas) throw new Error('Could not parse ideas from response.');
+    catch {
+      const m = ideasRaw.match(/\[[\s\S]*\]/);
+      try { ideas = m ? JSON.parse(m[0]) : null; }
+      catch { throw new Error(`Claude's idea response got cut off before finishing (likely too many ideas requested for one call). Try a smaller batch size (10 or 20) or run again.`); }
+    }
+    if (!ideas) throw new Error('Claude\'s idea response got cut off before finishing (likely too many ideas requested for one call). Try a smaller batch size (10 or 20) or run again.');
 
     // ── PHASE 4: Concept Rigor Evaluation (Barry Diagnosis)
-    setStatus('<span class="pulse-dot"></span> Phase 4 of 5 · Running concept rigor engine…');
+    setStatus('<span class="pulse-dot"></span> Phase 4 of 5 · Evaluating concept rigor…');
     const RIGOR_SYSTEM = `You are a senior advertising concept partner grounded in The Advertising Concept Book by Pete Barry. You are not polite to weak thinking. You spar, build, and compress. You diagnose ideas ruthlessly and honestly using these labels:
 - Strong Backbone: real human tension, execution-independent, reducible, original
 - Promising but Soft: good instinct, insight not yet sharp enough, needs reduction
@@ -1163,7 +2032,7 @@ For each idea return a JSON array with exactly ${ideas.length} objects in the sa
 
 rigorScore is 1–10 for concept strength independent of cultural timing (pure idea quality).
 Return ONLY the JSON array, no markdown.`,
-      4096
+      Math.min(8000, Math.max(4096, ideas.length * 180))
     );
 
     let rigorResults;
@@ -1208,7 +2077,7 @@ Return a JSON array with exactly ${ideas.length} objects in the same order:
 
 commerceScore is 1–10 for commercial potential (business impact + measurability + scalability).
 Return ONLY the JSON array, no markdown.`,
-      4096
+      Math.min(8000, Math.max(4096, ideas.length * 180))
     );
 
     let commerceResults;
@@ -1228,62 +2097,92 @@ Return ONLY the JSON array, no markdown.`,
     const sourceLogText = `═══ PHASE 1: BRAND INTELLIGENCE ═══\n\n${brandIntel}\n\n═══ PHASE 2: CULTURAL SCAN ═══\n\n${culturalScan}\n\n═══ PHASE 2.5: AWARD INTELLIGENCE ═══\n\n${awardIntel}`;
     document.getElementById('sourceLog').textContent = sourceLogText;
 
-    saveGeneration(b, ideas, sourceLogText);
-    renderIdeas(ideas, b.name);
+    // ── Save session to history
+    const now = new Date();
+    const sessionId = genId();
+    saveSession({
+      id: sessionId,
+      brandId: activeBrandId,
+      brandName: b.name,
+      ts: now.getTime(),
+      date: now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),
+      time: now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
+      ideas,
+      sourceLog: sourceLogText,
+    });
+
+    renderIdeas(ideas, b.name, sessionId);
     clearStatus();
   } catch(e) {
     clearStatus(); setError('Error: ' + e.message);
   } finally { btn.disabled = false; }
 };
 
-function rankClass(s) { return s>=9?'rank-signal':s>=7?'rank-hi':s>=5?'rank-mid':'rank-lo'; }
-
 // Store last generated ideas so 1-pager buttons can reference by index safely
 let _lastIdeas = [];
 let _lastBrand = '';
 
-// ── GENERATION SAVE (to session history)
-function saveGeneration(brand, ideas, sourceLogText) {
-  const now = new Date();
-  saveSession({
-    id: genId(),
-    brandId: brand.id,
-    brandName: brand.name,
-    date: now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}),
-    time: now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
-    ideas,
-    sourceLog: sourceLogText,
-  });
-}
-
-// ── VISUAL GUIDANCE MODAL
+// ── Visual Guidance modal state
 let _vgResolve = null;
 
 window.toggleVgMic = function() {
   const mic = document.getElementById('vgMic');
   const input = document.getElementById('vgInput');
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Speech recognition isn\'t available in this browser. Try Chrome or Safari.'); return; }
-  if (mic._recognition) { mic._recognition.stop(); return; }
+  if (!SR) {
+    alert('Speech recognition isn\'t available in this browser. Try Chrome or Safari.');
+    return;
+  }
+  // If already listening, stop
+  if (mic._recognition) {
+    mic._recognition.stop();
+    return;
+  }
   const rec = new SR();
-  rec.continuous = true; rec.interimResults = true; rec.lang = 'en-US';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'en-US';
+
+  // Track the committed text separately from interim so we can update live
   let committed = input.value;
-  rec.onstart = () => { mic.classList.add('listening'); mic.title = 'Listening… click to stop'; };
+
+  rec.onstart = () => {
+    mic.classList.add('listening');
+    mic.title = 'Listening… click to stop';
+  };
+
   rec.onresult = e => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) { committed += (committed ? ' ' : '') + t.trim(); }
-      else { interim = t; }
+      if (e.results[i].isFinal) {
+        committed += (committed ? ' ' : '') + t.trim();
+      } else {
+        interim = t;
+      }
     }
     input.value = committed + (interim ? ' ' + interim : '');
   };
+
   rec.onerror = e => {
-    if (e.error === 'not-allowed') alert('Microphone access was denied. Please allow it in browser settings.');
-    mic._recognition = null; mic.classList.remove('listening'); mic.title = 'Speak your direction';
+    if (e.error === 'not-allowed') {
+      alert('Microphone access was denied. Please allow microphone access in your browser settings and try again.');
+    }
+    mic._recognition = null;
+    mic.classList.remove('listening');
+    mic.title = 'Speak your direction';
   };
-  rec.onend = () => { mic._recognition = null; mic.classList.remove('listening'); mic.title = 'Speak your direction'; input.value = committed; };
-  rec.start(); mic._recognition = rec;
+
+  rec.onend = () => {
+    mic._recognition = null;
+    mic.classList.remove('listening');
+    mic.title = 'Speak your direction';
+    // Trim any dangling interim text
+    input.value = committed;
+  };
+
+  rec.start();
+  mic._recognition = rec;
 };
 
 window.submitVg = function(skip) {
@@ -1293,7 +2192,19 @@ window.submitVg = function(skip) {
   if (_vgResolve) { _vgResolve(guidance); _vgResolve = null; }
 };
 
-function promptVisualGuidance() {
+function promptVisualGuidance(idea) {
+  // A tile click jumps straight to build now (no separate detail view first),
+  // so show what you're actually about to adjust: name, picture, one-liner.
+  const preview = document.getElementById('vgIdeaPreview');
+  if (idea) {
+    document.getElementById('vgIdeaPreviewName').textContent = idea.headline || '';
+    document.getElementById('vgIdeaPreviewSub').textContent = idea.humanTension || idea.handle || idea.whyNow || '';
+    const thumb = document.getElementById('vgIdeaPreviewThumb');
+    thumb.style.backgroundImage = idea.thumbDataUrl ? `url(${idea.thumbDataUrl})` : '';
+    preview.style.display = 'flex';
+  } else {
+    preview.style.display = 'none';
+  }
   return new Promise(resolve => {
     _vgResolve = resolve;
     document.getElementById('vgInput').value = '';
@@ -1302,20 +2213,79 @@ function promptVisualGuidance() {
   });
 }
 
-document.getElementById('vgOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) window.submitVg(true); });
-document.getElementById('vgInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.submitVg(false); } });
+// Open-ended guidance can be about the idea's copy (headline/handle/tension/why
+// now/execution) or about the visual, or both in one sentence — e.g. "make the
+// headline punchier and set it at golden hour". Claude decides which parts of the
+// idea to rewrite (returned verbatim if untouched) and pulls out a clean visual
+// direction sentence for the image prompt.
+async function applyOpenEndedGuidance(apiKey, idea, guidance) {
+  if (!apiKey) return { idea, visualDirection: guidance };
+  try {
+    const raw = await claudeCall(
+      apiKey,
+      `You are a creative director applying a user's open-ended feedback to a campaign one-pager. The feedback might be about the idea's copy (headline, handle, human tension, why now, execution), about the visual/image direction, or both. Decide what applies and respond only with JSON.`,
+      `Current idea:
+Headline: ${idea.headline}
+Handle: ${idea.handle || ''}
+Human tension: ${idea.humanTension || ''}
+Why now: ${idea.whyNow || ''}
+Execution: ${idea.execution || ''}
 
-// ── 1-PAGER (Gemini image + iframe lightbox)
+User's additional direction: "${guidance}"
+
+Return ONLY this JSON object:
+{
+  "headline": "revised headline, or the original verbatim if the direction doesn't apply to it",
+  "handle": "revised handle, or the original verbatim if unchanged",
+  "humanTension": "revised human tension, or the original verbatim if unchanged",
+  "whyNow": "revised why now, or the original verbatim if unchanged",
+  "execution": "revised execution, or the original verbatim if unchanged",
+  "visualDirection": "a concrete visual direction sentence for the image generator if the user's direction applies to the visual/image, otherwise an empty string"
+}
+Only rewrite a copy field if the user's direction clearly applies to it. Do not invent changes that weren't asked for.`,
+      700
+    );
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch { const m = raw.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : null; }
+    if (!parsed) return { idea, visualDirection: guidance };
+    return {
+      idea: {
+        ...idea,
+        headline: parsed.headline || idea.headline,
+        handle: parsed.handle || idea.handle,
+        humanTension: parsed.humanTension || idea.humanTension,
+        whyNow: parsed.whyNow || idea.whyNow,
+        execution: parsed.execution || idea.execution,
+      },
+      visualDirection: parsed.visualDirection || '',
+    };
+  } catch (e) {
+    return { idea, visualDirection: guidance };
+  }
+}
+
+// Close vg overlay on backdrop click
+document.getElementById('vgOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) window.submitVg(true);
+});
+// Allow Enter (without shift) to submit
+document.getElementById('vgInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.submitVg(false); }
+});
+
 window.open1Pager = async function(i) {
-  const idea = _lastIdeas[i];
+  let idea = _lastIdeas[i];
   const brandName = _lastBrand;
   if (!idea) return;
+  const designMode = isDesignMode();
 
-  const userGuidance = await promptVisualGuidance();
+  // ── Show open-ended guidance gate first
+  const userGuidance = await promptVisualGuidance(idea);
 
+  // Use the active brand's signal color as the primary accent throughout
   const brandColor = activeBrandId && brands[activeBrandId]?.color
     ? brands[activeBrandId].color
-    : getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#06e3fc';
+    : getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#e8302a';
   const hex = brandColor.replace('#','');
   const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b2 = parseInt(hex.slice(4,6),16);
   const ac = brandColor;
@@ -1323,42 +2293,81 @@ window.open1Pager = async function(i) {
   const year = new Date().getFullYear();
 
   const frame = document.getElementById('pagerFrame');
-  frame.srcdoc = `<!DOCTYPE html><html><body style="margin:0;background:#08080d;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px;font-family:'Space Mono',monospace;color:#555;font-size:11px;letter-spacing:.12em;text-transform:uppercase;"><div style="width:8px;height:8px;border-radius:50%;background:${ac};animation:p 1.4s ease-in-out infinite;"></div><span>Generating visual…</span><style>@keyframes p{0%,100%{opacity:1;box-shadow:0 0 0 0 ${acDim}}50%{opacity:.7;box-shadow:0 0 0 10px rgba(0,0,0,0)}}</style></body></html>`;
+  function showPagerLoading(label) {
+    frame.srcdoc = `<!DOCTYPE html><html><body style="margin:0;background:#08080d;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px;font-family:'Space Mono',monospace;color:#555;font-size:11px;letter-spacing:.12em;text-transform:uppercase;"><div style="width:8px;height:8px;border-radius:50%;background:${ac};animation:p 1.4s ease-in-out infinite;"></div><span>${label}</span><style>@keyframes p{0%,100%{opacity:1;box-shadow:0 0 0 0 ${acDim}}50%{opacity:.7;box-shadow:0 0 0 10px rgba(0,0,0,0)}}</style></body></html>`;
+  }
+  // ── Show lightbox immediately so there's no dead gap while guidance is routed
+  showPagerLoading(userGuidance && userGuidance.trim() ? 'Applying direction…' : 'Generating visual…');
   document.getElementById('pagerOverlay').classList.add('visible');
   document.body.style.overflow = 'hidden';
 
+  // ── Route the open-ended guidance: copy/idea changes get applied to the idea
+  // object itself (headline, handle, tension, why now, execution); visual notes
+  // get carried forward as image direction. A single line of guidance can do both.
+  let extraVisualGuidance = userGuidance;
+  // Design mode routes no guidance through Claude — it just annotates the pager
+  // so we can still see where typed direction would land, without an API call.
+  if (!designMode && userGuidance && userGuidance.trim()) {
+    const apiKeyForGuidance = document.getElementById('apiKey').value.trim();
+    const routed = await applyOpenEndedGuidance(apiKeyForGuidance, idea, userGuidance.trim());
+    idea = routed.idea;
+    extraVisualGuidance = routed.visualDirection;
+    showPagerLoading('Generating visual…');
+  }
+
+  // ── Generate hero image via Nano Banana 2 (Gemini 3.1 Flash Image) if key present.
+  // Design mode skips this entirely and reuses the tile's placeholder image.
   const googleKey = (typeof SCOUT_KEYS !== 'undefined') ? SCOUT_KEYS.google : '';
-  let heroImg = null;
-  if (googleKey) {
+  let heroImg = designMode ? (idea.thumbDataUrl || null) : null;
+  if (!designMode && googleKey) {
     try {
       const clean = s => (s || '').replace(/[\uD800-\uDFFF]/g, '');
+      // Build a purely visual prompt — no explanatory text, no copy on the image
+      const coreTension = clean(idea.humanTension);
+      const coreIdea = clean(idea.headline);
+      const brandCtx = clean(brandName);
+      const extraGuidance = clean(extraVisualGuidance);
+      const anthropicKeyForRef = document.getElementById('apiKey').value.trim();
+      const { instruction: productRefInstruction, imageParts } = await buildAllRefParts(anthropicKeyForRef, brandCtx, idea);
       const imgPrompt = [
-        `A single cinematic advertising photograph for a ${clean(brandName)} campaign.`,
-        `Core idea: ${clean(idea.headline)}.`,
-        idea.humanTension ? `Visual emotion: ${clean(idea.humanTension)}.` : '',
-        userGuidance ? `Visual direction: ${clean(userGuidance)}.` : '',
+        `A single cinematic advertising photograph for a ${brandCtx} campaign.`,
+        `Core idea: ${coreIdea}.`,
+        coreTension ? `Visual emotion: ${coreTension}.` : '',
+        extraGuidance ? `Visual direction: ${extraGuidance}.` : '',
+        productRefInstruction,
         `Style: bold, high-production advertising photography. Dark atmospheric lighting. 16:9 widescreen composition.`,
         `IMPORTANT: No text, no words, no typography, no logos, no overlays. Pure image only.`
       ].filter(Boolean).join(' ');
-      const imgRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/interactions`, {
+      const heroInput = [...imageParts, { type: 'text', text: imgPrompt }];
+      const imgRes = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': googleKey },
         body: JSON.stringify({
           model: 'gemini-3.1-flash-image',
-          input: [{ type: 'text', text: imgPrompt }],
+          input: heroInput,
           response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '16:9', image_size: '1K' }
         })
-      });
+      }, 90000);
       if (imgRes.ok) {
         const imgData = await imgRes.json();
+        // Response: steps array — find the model_output step, grab first content item
         const outputStep = imgData?.steps?.find(s => s.type === 'model_output');
         const part = outputStep?.content?.[0];
-        if (part?.data) heroImg = `data:${part.mime_type || 'image/jpeg'};base64,${part.data}`;
-      } else { console.error('Gemini image error', imgRes.status, (await imgRes.text()).slice(0,200)); }
+        if (part?.data) {
+          heroImg = `data:${part.mime_type || 'image/jpeg'};base64,${part.data}`;
+        }
+      } else {
+        const errText = await imgRes.text();
+        console.error('Gemini image error', imgRes.status, errText.slice(0, 200));
+      }
     } catch(e) { /* fall through to fallback */ }
   }
+  // Fallback: Unsplash if no Google key or generation failed
   if (!heroImg) {
-    const imgKeywords = encodeURIComponent((brandName + ' ' + idea.platform + ' ' + idea.format).replace(/[^a-zA-Z0-9 ]/g,' ').replace(/\s+/g,'+').slice(0,80));
+    const imgKeywords = encodeURIComponent(
+      (brandName + ' ' + idea.platform + ' ' + idea.format)
+        .replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, '+').slice(0, 80)
+    );
     heroImg = `https://images.unsplash.com/1600x900/?${imgKeywords}`;
   }
 
@@ -1369,46 +2378,165 @@ window.open1Pager = async function(i) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${idea.headline}</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{width:100%;height:100%;overflow:hidden;background:#08080d;font-family:'Space Grotesk',sans-serif;}
-  .slide{width:100vw;height:100vh;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;overflow:hidden;}
-  @media(max-aspect-ratio:1/1){.slide{grid-template-columns:1fr;grid-template-rows:1fr 40vh;}}
-  .left{position:relative;padding:5% 5% 4% 6%;display:flex;flex-direction:column;justify-content:space-between;z-index:2;background:#08080d;overflow-y:auto;overflow-x:hidden;min-height:0;}
-  .left::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);}
-  @media(max-aspect-ratio:1/1){.left::after{display:none;}}
+
+  /* ── LAYOUT: landscape = side-by-side, portrait = brief on top, image below ── */
+  .slide{
+    width:100vw; height:100vh;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:1fr;
+    overflow:hidden;
+  }
+  @media(max-aspect-ratio:1/1){
+    .slide{ grid-template-columns:1fr; grid-template-rows:1fr 40vh; }
+  }
+
+  /* ── LEFT PANEL ── */
+  .left{
+    position:relative;
+    padding:5% 5% 4% 6%;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    z-index:2;
+    background:#08080d;
+    overflow-y:auto;
+    overflow-x:hidden;
+    min-height:0;
+  }
+  .left::after{
+    content:'';
+    position:absolute;
+    right:0;top:0;bottom:0;
+    width:1px;
+    background:linear-gradient(to bottom,transparent,${ac} 30%,${ac} 70%,transparent);
+  }
+  @media(max-aspect-ratio:1/1){
+    .left::after{ display:none; }
+  }
+
   .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
-  .brand-pill{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:clamp(7px,1vw,11px);letter-spacing:.2em;text-transform:uppercase;color:#555;}
+  .brand-pill{
+    display:flex;align-items:center;gap:8px;
+    font-family:'Space Mono',monospace;
+    font-size:clamp(7px,1vw,11px);
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:#555;
+  }
   .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
-  .score-badge{font-family:'Space Mono',monospace;font-size:clamp(8px,1.1vw,13px);letter-spacing:.12em;color:${ac};border:1px solid ${ac};padding:3px 10px;border-radius:2px;}
-  .headline-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6% 0;}
-  .eyebrow{font-family:'Space Mono',monospace;font-size:clamp(7px,.9vw,10px);letter-spacing:.25em;text-transform:uppercase;color:${ac};margin-bottom:3%;}
-  .headline{font-family:'Highrise',var(--sans,sans-serif);font-size:clamp(18px,3.6vw,52px);font-weight:700;line-height:1.0;letter-spacing:.01em;color:#f5f3ee;margin-bottom:5%;}
+
+  .score-badge{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(8px,1.1vw,13px);
+    letter-spacing:.12em;
+    color:${ac};
+    border:1px solid ${ac};
+    padding:3px 10px;
+    border-radius:2px;
+  }
+
+  .headline-block{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:6% 0 0;}
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(7px,.9vw,10px);
+    letter-spacing:.25em;
+    text-transform:uppercase;
+    color:${ac};
+    margin-bottom:3%;
+  }
+  .headline{
+    font-size:clamp(18px,3.6vw,52px);
+    font-weight:900;
+    line-height:1.0;
+    letter-spacing:-.03em;
+    color:#f5f3ee;
+    margin-bottom:5%;
+  }
   .chips{display:flex;gap:8px;flex-wrap:wrap;}
-  .chip{font-family:'Space Mono',monospace;font-size:clamp(6px,.8vw,9px);letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border:1px solid #2a2a35;color:#555;}
+  .chip{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.8vw,9px);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border:1px solid #2a2a35;
+    color:#555;
+  }
   .chip-accent{border-color:${ac};color:${ac};}
+
   .brief-block{border-top:1px solid #1a1a24;padding-top:4%;}
   .brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:4%;}
-  .brief-field-label{font-family:'Space Mono',monospace;font-size:clamp(6px,.75vw,8px);letter-spacing:.2em;text-transform:uppercase;color:${ac};margin-bottom:5px;}
+  .brief-field-label{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.75vw,8px);
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:${ac};
+    margin-bottom:5px;
+  }
   .brief-field-text{font-size:clamp(9px,1.1vw,13px);color:#9ca3af;line-height:1.5;}
-  .footer-bar{display:flex;align-items:center;justify-content:space-between;padding-top:3%;margin-top:3%;border-top:1px solid #1a1a24;}
+
+  .footer-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-top:3%;
+    margin-top:3%;
+    border-top:1px solid #1a1a24;
+  }
   .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#333;}
   .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#333;}
-  .right{position:relative;overflow:hidden;min-height:0;}
-  .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
-  .right::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(8,8,13,.45) 0%,transparent 35%);pointer-events:none;}
-  .signals-strip{position:absolute;bottom:0;left:0;right:0;font-family:'Space Mono',monospace;font-size:clamp(6px,.65vw,8px);letter-spacing:.1em;color:rgba(255,255,255,.35);background:linear-gradient(to top,rgba(8,8,13,.8) 0%,transparent 100%);padding:18px 5% 4%;line-height:1.7;z-index:2;}
-  @media print{html,body{width:297mm;height:167mm;display:block;}.slide{width:297mm;height:167mm;}}
+
+  /* ── RIGHT PANEL — full-bleed image only ── */
+  .right{
+    position:relative;
+    overflow:hidden;
+    min-height:0;
+  }
+  .hero-img{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  /* Subtle gradient fade on the left edge so brief text doesn't clash */
+  .right::after{
+    content:'';
+    position:absolute;inset:0;
+    background:linear-gradient(to right, rgba(8,8,13,.45) 0%, transparent 35%);
+    pointer-events:none;
+  }
+  /* Signals strip pinned to bottom of image */
+  .signals-strip{
+    position:absolute;bottom:0;left:0;right:0;
+    font-family:'Space Mono',monospace;
+    font-size:clamp(6px,.65vw,8px);
+    letter-spacing:.1em;
+    color:rgba(255,255,255,.35);
+    background:linear-gradient(to top, rgba(8,8,13,.8) 0%, transparent 100%);
+    padding:18px 5% 4%;
+    line-height:1.7;
+    z-index:2;
+  }
+
+  @media print{
+    html,body{width:297mm;height:167mm;display:block;}
+    .slide{width:297mm;height:167mm;}
+  }
 </style>
 </head>
 <body>
 <div class="slide">
+
+  <!-- LEFT: Brief -->
   <div class="left">
     <div class="top-bar">
       <div class="brand-pill">${brandName}</div>
       <div class="score-badge">${idea.score} / 10</div>
     </div>
+
     <div class="headline-block">
       <div class="eyebrow">${idea.rigorLabel || 'Campaign Concept'}</div>
       <div class="headline">${idea.headline}</div>
@@ -1418,23 +2546,33 @@ window.open1Pager = async function(i) {
         <span class="chip">${idea.format}</span>
       </div>
     </div>
+
     <div class="brief-block">
       ${idea.humanTension ? `<div style="font-size:clamp(9px,1.05vw,12px);color:#e5e7eb;font-style:italic;font-weight:600;margin-bottom:4%;padding-bottom:3%;border-bottom:1px solid #1a1a24;">${idea.humanTension}</div>` : ''}
       <div class="brief-grid">
-        <div><div class="brief-field-label">Why Now</div><div class="brief-field-text">${idea.whyNow}</div></div>
-        <div><div class="brief-field-label">Execution</div><div class="brief-field-text">${idea.execution}</div></div>
+        <div>
+          <div class="brief-field-label">Why Now</div>
+          <div class="brief-field-text">${idea.whyNow}</div>
+        </div>
+        <div>
+          <div class="brief-field-label">Execution</div>
+          <div class="brief-field-text">${idea.execution}</div>
+        </div>
       </div>
       ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
       <div class="footer-bar">
-        <span class="footer-scout">{ Scout } · Concept Rigor Engine</span>
+        <span class="footer-scout">🔭 Scout · Concept Rigor Engine</span>
         <span class="footer-year">${year}</span>
       </div>
     </div>
   </div>
+
+  <!-- RIGHT: Full-bleed AI image -->
   <div class="right">
     <img class="hero-img" src="${heroImg}" alt="" onerror="this.style.opacity='0'" />
     ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${esc(idea.sourceSignals)}</div>` : ''}
   </div>
+
 </div>
 </body>
 </html>`;
@@ -1447,39 +2585,146 @@ window.closePager = function() {
   document.body.style.overflow = '';
 };
 
-document.getElementById('pagerOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) window.closePager(); });
+// Close on backdrop click
+document.getElementById('pagerOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) window.closePager();
+});
 
-
-function getFeedback(i) {
-  const brand = brands[activeBrandId];
-  if (!brand || !_lastIdeas[i]) return null;
-  const key = _lastIdeas[i].headline;
-  if ((brand.liked||[]).some(x=>x.headline===key)) return 'up';
-  if ((brand.disliked||[]).some(x=>x.headline===key)) return 'down';
-  return null;
+// ── PDF export — rasterizes the one-pager into a single 16:9 image so the
+// output always fits exactly one landscape page, matching the lightbox layout,
+// regardless of the viewer's current window shape.
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement('script');
+    s.src = src; s.onload = () => resolve(); s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
 }
 
-window.setFeedback = function(i, dir) {
-  const brand = brands[activeBrandId];
+const PAGER_PX_W = 1600, PAGER_PX_H = 900;
+
+async function renderPagerToImage() {
+  const html = document.getElementById('pagerFrame').srcdoc;
+  if (!html) throw new Error('Nothing to export yet');
+  if (!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+
+  // Render into a hidden, fixed 1600x900 iframe (forced landscape) so the export
+  // is always exactly 16:9 even if the visible lightbox is currently in the
+  // portrait layout on a narrow/tall window.
+  const hidden = document.createElement('iframe');
+  hidden.style.cssText = `position:fixed; left:-99999px; top:0; width:${PAGER_PX_W}px; height:${PAGER_PX_H}px; border:none;`;
+  document.body.appendChild(hidden);
+  try {
+    await new Promise(resolve => { hidden.onload = resolve; hidden.srcdoc = html; });
+    await new Promise(r => setTimeout(r, 350)); // let webfonts/images settle
+    const doc = hidden.contentDocument;
+
+    // html2canvas doesn't reliably honor `object-fit: cover` on <img> — it
+    // stretches the image to fill the box instead of cropping it, which is
+    // exactly the "squished" look. Swap the hero <img> for a same-sized div
+    // using background-size:cover, which html2canvas renders correctly, so
+    // the export crops the image the same way the live popup does.
+    const heroImg = doc.querySelector('.hero-img');
+    if (heroImg && heroImg.getAttribute('src')) {
+      const bgDiv = doc.createElement('div');
+      bgDiv.className = heroImg.className;
+      const inlineStyle = heroImg.getAttribute('style') || '';
+      bgDiv.setAttribute('style', `${inlineStyle}; background-image:url(${heroImg.getAttribute('src')}); background-size:cover; background-position:center; background-repeat:no-repeat;`);
+      heroImg.replaceWith(bgDiv);
+    }
+
+    const target = doc.querySelector('.slide') || doc.body;
+    const canvas = await window.html2canvas(target, {
+      backgroundColor: '#08080d', width: PAGER_PX_W, height: PAGER_PX_H,
+      windowWidth: PAGER_PX_W, windowHeight: PAGER_PX_H, scale: 1.5, useCORS: true,
+    });
+    return canvas.toDataURL('image/jpeg', 0.95);
+  } finally {
+    document.body.removeChild(hidden);
+  }
+}
+
+function pagerFileSlug() {
+  return `${(_lastBrand || 'scout').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-one-pager`;
+}
+
+async function withDownloadButton(btnId, busyLabel, fn) {
+  const btn = document.getElementById(btnId);
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = busyLabel;
+  try { await fn(); }
+  catch (e) { alert('Export failed: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = original; }
+}
+
+window.downloadPagerPdf = function() {
+  withDownloadButton('pagerPdfBtn', 'Preparing…', async () => {
+    if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    const imgData = await renderPagerToImage();
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [PAGER_PX_W, PAGER_PX_H] });
+    pdf.addImage(imgData, 'JPEG', 0, 0, PAGER_PX_W, PAGER_PX_H);
+    pdf.save(`${pagerFileSlug()}.pdf`);
+  });
+};
+
+// brandIdOverride lets liking work from contexts where no brand is "active"
+// yet — e.g. the returning-user feed shown before a brand is selected.
+function isLiked(i, brandIdOverride) {
+  const brand = brands[brandIdOverride || activeBrandId];
+  if (!brand || !_lastIdeas[i]) return false;
+  const key = _lastIdeas[i].headline;
+  return (brand.liked||[]).some(x=>x.headline===key);
+}
+
+window.toggleLike = function(i, brandIdOverride) {
+  const brand = brands[brandIdOverride || activeBrandId];
   if (!brand || !_lastIdeas[i]) return;
   const idea = _lastIdeas[i];
   const snap = {headline:idea.headline, handle:idea.handle||'', humanTension:idea.humanTension||''};
+  const wasLiked = isLiked(i, brandIdOverride);
   brand.liked = (brand.liked||[]).filter(x=>x.headline!==snap.headline);
-  brand.disliked = (brand.disliked||[]).filter(x=>x.headline!==snap.headline);
-  const current = getFeedback(i);
-  if (current !== dir) {
-    if (dir==='up') brand.liked.push(snap);
-    else brand.disliked.push(snap);
-  }
+  if (!wasLiked) brand.liked.push(snap);
   saveStore(brands);
-  // Re-render just this card's feedback buttons
-  const card = document.querySelectorAll('.idea-card')[i];
-  if (card) {
-    const newFb = getFeedback(i);
-    card.querySelector('.btn-feedback:nth-child(1)').className = 'btn-feedback' + (newFb==='up' ? ' active-up' : '');
-    card.querySelector('.btn-feedback:nth-child(2)').className = 'btn-feedback' + (newFb==='down' ? ' active-down' : '');
-  }
+  const nowLiked = isLiked(i, brandIdOverride);
+  // Re-render the tile's like button — check both the main grid and feed ids
+  ['tile', 'feedtile'].forEach(prefix => {
+    const tile = document.getElementById(`${prefix}-${i}`);
+    if (!tile) return;
+    const btn = tile.querySelector('.tile-like-btn');
+    if (btn) btn.classList.toggle('active-like', nowLiked);
+  });
+  // If a "liked only" filter is active anywhere, immediately reflect the change
+  applyLikedFilter('main');
+  applyLikedFilter('feed');
 };
+
+// "Liked only" filter — one toggle per feed (main results grid vs. the
+// returning-user feed), since both can be showing tiles from different idea
+// sets at different times.
+const _likedFilterActive = { main: false, feed: false };
+
+window.toggleLikedFilter = function(scope) {
+  _likedFilterActive[scope] = !_likedFilterActive[scope];
+  applyLikedFilter(scope);
+};
+
+function applyLikedFilter(scope) {
+  const containerId = scope === 'feed' ? 'emptyFeedGrid' : 'ideasContainer';
+  const btnId = scope === 'feed' ? 'feedLikedFilterBtn' : 'mainLikedFilterBtn';
+  const brandIdOverride = scope === 'feed' ? EMPTY_STATE_BRAND_ID : undefined;
+  const active = _likedFilterActive[scope];
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.toggle('active-filter', active);
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.tile').forEach(tile => {
+    const idx = parseInt(tile.id.split('-').pop(), 10);
+    const liked = isLiked(idx, brandIdOverride);
+    tile.style.display = (active && !liked) ? 'none' : '';
+  });
+}
 
 function buildFeedbackPrompt() {
   const brand = brands[activeBrandId];
@@ -1498,64 +2743,377 @@ function buildFeedbackPrompt() {
   return out;
 }
 
-function renderIdeas(ideas, brand) {
+// ── Color helpers for brand-tinted tiles
+function hexToRgb(hex) {
+  hex = (hex||'#e8302a').replace('#','');
+  return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+}
+function mixRgb(rgb, target, amt) { return rgb.map((c,i) => Math.round(c + (target[i]-c)*amt)); }
+function rgbToCss(rgb) { return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`; }
+function relLuminance(rgb) {
+  const a = rgb.map(v => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); });
+  return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
+}
+function getBrandAccent() {
+  return (activeBrandId && brands[activeBrandId]?.color)
+    ? brands[activeBrandId].color
+    : (getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#e8302a');
+}
+function tileVariant(brandRgb, i) {
+  const white = [255,255,255], black = [8,8,13];
+  const kind = i % 4;
+  if (kind === 0) {
+    const lum = relLuminance(brandRgb);
+    return { bg: rgbToCss(brandRgb), fg: lum > 0.5 ? '#0a0a12' : '#ffffff', fgDim: lum > 0.5 ? 'rgba(10,10,18,0.7)' : 'rgba(255,255,255,0.82)' };
+  }
+  if (kind === 1) return { bg: rgbToCss(mixRgb(brandRgb, black, 0.72)), fg: '#ffffff', fgDim: 'rgba(255,255,255,0.75)' };
+  if (kind === 2) return { bg: rgbToCss(mixRgb(brandRgb, white, 0.62)), fg: '#0a0a12', fgDim: 'rgba(10,10,18,0.72)' };
+  return { bg: rgbToCss(mixRgb(brandRgb, black, 0.4)), fg: '#ffffff', fgDim: 'rgba(255,255,255,0.78)' };
+}
+
+const HEART_SVG = `<svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 21s-6.716-4.35-9.428-7.938C.99 10.9 1 8.5 2.8 6.8a5 5 0 0 1 7.2.2L12 9l2-2a5 5 0 0 1 7.2-.2c1.8 1.7 1.81 4.1.228 6.262C18.716 16.65 12 21 12 21z"/></svg>`;
+
+// ── Pinterest-style tile feed: headline + subline only; click a tile to build out full detail
+function tileLikeHTML(i, brandIdOverride) {
+  const liked = isLiked(i, brandIdOverride);
+  const ov = brandIdOverride ? `,'${brandIdOverride}'` : '';
+  return `
+  <button class="tile-like-btn ${liked?'active-like':''}" onclick="event.stopPropagation(); toggleLike(${i}${ov})" title="Like">${HEART_SVG}</button>`;
+}
+
+// Relative height/width ratio for each fixed aspect-ratio class, used to
+// greedily balance tiles across columns before any images have loaded.
+const TILE_ASPECT_RATIO = { 'tile-h1': 1.15, 'tile-h2': 1.3333, 'tile-h3': 1, 'tile-h4': 0.8 };
+
+function getTileColumnCount() {
+  const w = window.innerWidth;
+  if (w <= 520) return 1;
+  if (w <= 900) return 2;
+  if (w <= 1300) return 3;
+  return 4;
+}
+
+let _lastTileHTML = []; // [{ html, heightClass }] cached so resize can re-layout without rebuilding markup
+
+function layoutTileColumns() {
+  const container = document.getElementById('ideasContainer');
+  if (!_lastTileHTML.length) return;
+  const cols = getTileColumnCount();
+  const colHeights = new Array(cols).fill(0);
+  const colEls = Array.from({ length: cols }, () => { const d = document.createElement('div'); d.className = 'tile-col'; return d; });
+  _lastTileHTML.forEach(({ html, heightClass }) => {
+    let target = 0;
+    for (let c = 1; c < cols; c++) if (colHeights[c] < colHeights[target]) target = c;
+    colHeights[target] += TILE_ASPECT_RATIO[heightClass] || 1;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html.trim();
+    colEls[target].appendChild(tmp.firstElementChild);
+  });
+  container.innerHTML = '';
+  colEls.forEach(c => container.appendChild(c));
+  observeTileReveals(container);
+  applyLikedFilter('main'); // re-sync the filter button + hidden tiles since the grid was just rebuilt
+}
+
+// ── Scroll reveal for tiles — subtle move-up + blur-to-sharp, same feel as the
+// intro headlines, triggered once each tile scrolls into view.
+const tileRevealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('tile-revealed');
+      tileRevealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+function observeTileReveals(root) {
+  if (!root) return;
+  const tiles = root.querySelectorAll('.tile:not(.tile-revealed)');
+  tiles.forEach((el, i) => {
+    el.style.transitionDelay = `${(i % 10) * 45}ms`; // slight per-tile stagger, capped so long grids don't lag
+    tileRevealObserver.observe(el);
+  });
+}
+
+let _tileResizeCols = null;
+window.addEventListener('resize', () => {
+  const cols = getTileColumnCount();
+  if (cols === _tileResizeCols) return;
+  _tileResizeCols = cols;
+  layoutTileColumns();
+});
+
+function renderIdeas(ideas, brand, sessionId) {
   _lastIdeas = ideas;
   _lastBrand = brand;
-  const now = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  document.getElementById('briefMeta').textContent = `${ideas.length} ideas · ${brand} · ${now}`;
-  document.getElementById('ideasContainer').innerHTML = ideas.map((idea, i)=>{
-    const labelClass = {
-      'Strong Backbone':'rigor-strong','Promising but Soft':'rigor-soft',
-      'Execution-Led':'rigor-exec','Decorative':'rigor-deco','Cliché Risk':'rigor-cliche'
-    }[idea.rigorLabel] || 'rigor-deco';
-    const commerceClass = {
-      'Award Contender':'commerce-gold','Solid Performer':'commerce-silver',
-      'Needs a Hook':'commerce-bronze','Awareness Play':'commerce-niche'
-    }[idea.commerceLabel] || 'commerce-niche';
-    const fb = getFeedback(i);
-    return `
-    <div class="idea-card">
-      <div class="idea-header">
-        <div class="idea-rank ${rankClass(idea.score)}">${idea.score}</div>
-        <div class="idea-title-wrap">
-          <div class="idea-headline">${esc(idea.headline)}</div>
-          ${idea.handle?`<div class="idea-handle">"${esc(idea.handle)}"</div>`:''}
-          <div class="idea-chips">
-            <span class="chip chip-platform">${esc(idea.platform)}</span>
-            <span class="chip">${esc(idea.format)}</span>
-          </div>
+  _likedFilterActive.main = false; // fresh idea set — don't carry over a stale filter from a previous run
+
+  const accent = getBrandAccent();
+  const brandRgb = hexToRgb(accent);
+  const heightClasses = ['tile-h1','tile-h2','tile-h3','tile-h4'];
+  const hasGoogleKey = !!((typeof SCOUT_KEYS !== 'undefined') && SCOUT_KEYS.google);
+
+  _lastTileHTML = ideas.map((idea, i) => {
+    const heightClass = heightClasses[i % heightClasses.length];
+    const v = tileVariant(brandRgb, i);
+    const sub = esc(idea.humanTension || idea.handle || idea.whyNow || '');
+
+    const cached = idea.thumbDataUrl;
+    // An image tile is used whenever there's already a cached image (a real
+    // generated thumbnail, or a design-mode placeholder) OR a Google key exists
+    // to generate one. Placeholder images therefore show even with no API key.
+    if (cached || hasGoogleKey) {
+      return { heightClass, html: `
+      <div class="tile tile-image ${cached ? '' : 'tile-loading'} ${heightClass}" id="tile-${i}" data-idx="${i}" style="--tile-bg:${v.bg}${cached ? `; background-image:url(&quot;${cached}&quot;)` : ''}" onclick="open1Pager(${i})">
+        ${tileLikeHTML(i)}
+        <span class="tile-build" onclick="event.stopPropagation(); open1Pager(${i})">Build →</span>
+        <div class="tile-content" style="color:#fff;">
+          <div class="tile-eyebrow">${esc(idea.platform||'')}</div>
+          <div class="tile-headline">${esc(idea.headline)}</div>
+          <div class="tile-sub">${sub}</div>
         </div>
+      </div>` };
+    }
+    return { heightClass, html: `
+    <div class="tile tile-color ${heightClass}" id="tile-${i}" style="--tile-bg:${v.bg}; color:${v.fg};" onclick="open1Pager(${i})">
+      ${tileLikeHTML(i)}
+      <span class="tile-build" style="background:rgba(0,0,0,0.18); border-color:${v.fgDim}; color:${v.fg};" onclick="event.stopPropagation(); open1Pager(${i})">Build →</span>
+      <div class="tile-content">
+        <div class="tile-eyebrow" style="color:${v.fgDim}">${esc(idea.platform||'')}</div>
+        <div class="tile-headline">${esc(idea.headline)}</div>
+        <div class="tile-sub" style="color:${v.fgDim}">${sub}</div>
       </div>
-      <div class="idea-body">
-        ${idea.humanTension?`<div class="idea-tension" style="grid-column:1/-1">${esc(idea.humanTension)}</div>`:''}
-        <div class="idea-field"><div class="idea-field-label">Why now</div><div class="idea-field-text">${esc(idea.whyNow)}</div></div>
-        <div class="idea-field"><div class="idea-field-label">Execution</div><div class="idea-field-text">${esc(idea.execution)}</div></div>
-        ${idea.sourceSignals?`<div class="idea-signals">Signals · ${esc(idea.sourceSignals)}</div>`:''}
-        ${idea.rigorLabel?`
-        <div class="rigor-bar">
-          <span class="rigor-label ${labelClass}">${esc(idea.rigorLabel)}</span>
-          <span class="rigor-note">${esc(idea.rigorNote||'')}</span>
-          ${idea.rigorScore?`<span class="rigor-score">Concept ${idea.rigorScore}/10</span>`:''}
-        </div>`:''}
-        ${idea.commerceLabel?`
-        <div class="commerce-bar">
-          <span class="commerce-label ${commerceClass}">${esc(idea.commerceLabel)}</span>
-          <span class="commerce-note">${esc(idea.commerceNote||'')}</span>
-          ${idea.commerceScore?`<span class="commerce-score">Commerce ${idea.commerceScore}/10</span>`:''}
-        </div>`:''}
-        <div class="idea-actions">
-          <div class="feedback-btns">
-            <button class="btn-feedback ${fb==='up'?'active-up':''}" onclick="setFeedback(${i},'up')" title="On-brand">👍</button>
-            <button class="btn-feedback ${fb==='down'?'active-down':''}" onclick="setFeedback(${i},'down')" title="Off-brand">👎</button>
-          </div>
-          <button class="btn-pager" onclick="open1Pager(${i})">Generate 1-Pager</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+    </div>` };
+  });
+  _tileResizeCols = getTileColumnCount();
+  layoutTileColumns();
+
   document.getElementById('results').classList.add('visible');
   document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+
+  if (hasGoogleKey) {
+    const needsGen = ideas.map((idea, i) => idea.thumbDataUrl ? null : i).filter(i => i !== null);
+    if (needsGen.length) generateTileImages(ideas, brand, brandRgb, 'tile', sessionId, needsGen);
+  }
 }
+
+// ── Product reference image: user-uploaded once per brand (see "Product Reference
+// Image" uploader in Brand Briefs & Documents), used as-is for every Nano Banana
+// call for that brand. Replaces the old per-idea web-search lookup, which was
+// slow (a full Claude call with live web search, then an image fetch, per idea)
+// and let the model pick the wrong product photo.
+function getProductRefImages() {
+  const brand = activeBrandId && brands[activeBrandId];
+  return (brand && brand.productImages) || [];
+}
+
+function genericProductRefFallback(brandCtx, refs) {
+  const instruction = refs.length === 1
+    ? `Reference image attached: a real photo of the actual ${brandCtx} product. Use it strictly as reference for the product's true form, silhouette, proportions, and packaging graphics/labeling — render that same product accurately, do not invent a different package design. Do not copy the reference photo's background, lighting, or composition.`
+    : `${refs.length} reference images attached, each a real photo of a different actual ${brandCtx} product. Decide which one is the actual subject of this specific idea and use ONLY that one strictly as reference for its true form, silhouette, proportions, and packaging graphics/labeling — render that same product accurately, do not invent a different package design. Ignore the other reference images entirely. Do not copy any reference photo's background, lighting, or composition.`;
+  return { instruction, imageParts: refs.map(r => ({ type: 'image', mime_type: r.mime_type, data: r.data })) };
+}
+
+// Builds the instruction + input parts for however many reference images are
+// attached. Each image was analyzed once on upload (analyzeProductImage) into a
+// catalog of its pack shape, logo, graphics, color palette etc. Here, for THIS
+// specific idea, Claude decides which reference(s) actually apply and which
+// specific visual element is worth referencing — the whole pack for a product-shot
+// idea, just the logo for a cultural/stunt idea, just a graphic motif for something
+// more abstract — and writes a bespoke instruction instead of one generic line
+// reused for every tile.
+async function buildProductRefParts(apiKey, brandCtx, idea) {
+  const refs = getProductRefImages();
+  if (!refs.length) return { instruction: '', imageParts: [] };
+
+  const analyzed = refs.filter(r => r.analysis);
+  if (!apiKey || !analyzed.length) return genericProductRefFallback(brandCtx, refs);
+
+  try {
+    const refBlock = refs.map((r, i) => `Reference ${i}${r.name ? ` (${r.name})` : ''}:\n${r.analysis || '(no analysis available — treat as a generic product photo)'}`).join('\n\n');
+    const raw = await claudeCall(
+      apiKey,
+      `You are an art director briefing an AI image generator. For a specific campaign idea, you decide which uploaded product reference photo(s) apply and which specific visual element of that photo is worth referencing — the whole pack and its form, just the logo/wordmark, just a graphic motif or character, just the color palette, or a combination. You write one short, concrete instruction sentence for the image model to follow. You respond only with JSON.`,
+      `Brand: ${brandCtx}
+Campaign idea: "${idea.headline}" — ${idea.humanTension || ''} ${idea.execution || ''}
+
+Available product references:
+${refBlock}
+
+Decide which reference(s) are relevant to this idea and which specific visual element(s) should be used as reference for image generation. Return ONLY a JSON object:
+{
+  "useRefs": [0],
+  "instruction": "one concrete sentence telling the image model exactly what to reference and how"
+}
+useRefs is a zero-based array of which reference indexes to attach as images — usually just one, only include more than one if genuinely both apply. If none of the references are relevant to this idea, return an empty array and an empty instruction string.`,
+      300
+    );
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch { const m = raw.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : null; }
+    if (parsed && Array.isArray(parsed.useRefs) && parsed.useRefs.length && parsed.instruction) {
+      const chosen = parsed.useRefs.map(i => refs[i]).filter(Boolean);
+      if (chosen.length) {
+        return { instruction: parsed.instruction, imageParts: chosen.map(r => ({ type: 'image', mime_type: r.mime_type, data: r.data })) };
+      }
+    }
+    if (parsed && Array.isArray(parsed.useRefs) && parsed.useRefs.length === 0) {
+      return { instruction: '', imageParts: [] }; // Claude decided no reference applies to this idea
+    }
+  } catch (e) { /* fall through to generic */ }
+
+  return genericProductRefFallback(brandCtx, refs);
+}
+
+// ── Campaign STYLE references — art direction / layout / graphics / comms to
+// emulate when generating each idea's mockups (parallel to product refs).
+function getCampaignRefImages() {
+  const brand = activeBrandId && brands[activeBrandId];
+  return (brand && brand.campaignImages) || [];
+}
+
+function genericCampaignRefFallback(refs) {
+  const many = refs.length > 1;
+  const instruction = `Campaign style reference image${many ? 's' : ''} attached — use ${many ? 'them' : 'it'} as art-direction guidance for the overall aesthetic, layout, composition, typographic feel, graphic treatment, color and lighting. Emulate that creative STYLE and finish. Do NOT copy the reference's literal subject, product, or wording — apply only its look and feel to this idea.`;
+  return { instruction, imageParts: refs.map(r => ({ type: 'image', mime_type: r.mime_type, data: r.data })) };
+}
+
+// Mirror of buildProductRefParts, but for campaign STYLE references: Claude picks
+// which style reference(s) fit this idea and writes one instruction telling the
+// image model how to apply that art direction to the idea's mockup.
+async function buildCampaignRefParts(apiKey, brandCtx, idea) {
+  const refs = getCampaignRefImages();
+  if (!refs.length) return { instruction: '', imageParts: [] };
+
+  const analyzed = refs.filter(r => r.analysis);
+  if (!apiKey || !analyzed.length) return genericCampaignRefFallback(refs);
+
+  try {
+    const refBlock = refs.map((r, i) => `Reference ${i}${r.name ? ` (${r.name})` : ''}:\n${r.analysis || '(no analysis available — treat as a generic style reference)'}`).join('\n\n');
+    const raw = await claudeCall(
+      apiKey,
+      `You are an art director briefing an AI image generator. Campaign STYLE references have been provided — examples of the art direction, layout, typography feel, graphics, color and finish we want generated campaign mockups to emulate. For a specific campaign idea, decide which reference(s) fit and write ONE short instruction telling the image model how to apply that STYLE (its look and feel — NOT its literal subject, product, or copy) to this idea's mockup. You respond only with JSON.`,
+      `Brand: ${brandCtx}
+Campaign idea: "${idea.headline}" — ${idea.humanTension || ''} ${idea.execution || ''}
+
+Available campaign style references:
+${refBlock}
+
+Decide which reference(s) best fit this idea's mockup and how their style should be applied. Return ONLY a JSON object:
+{
+  "useRefs": [0],
+  "instruction": "one concrete sentence telling the image model how to apply the referenced art direction/layout/graphic treatment to this idea"
+}
+useRefs is a zero-based array of which reference indexes to attach — usually one, only more if genuinely complementary. If none fit, return an empty array and an empty instruction string.`,
+      300
+    );
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch { const m = raw.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : null; }
+    if (parsed && Array.isArray(parsed.useRefs) && parsed.useRefs.length && parsed.instruction) {
+      const chosen = parsed.useRefs.map(i => refs[i]).filter(Boolean);
+      if (chosen.length) {
+        return { instruction: parsed.instruction, imageParts: chosen.map(r => ({ type: 'image', mime_type: r.mime_type, data: r.data })) };
+      }
+    }
+    if (parsed && Array.isArray(parsed.useRefs) && parsed.useRefs.length === 0) {
+      return { instruction: '', imageParts: [] };
+    }
+  } catch (e) { /* fall through to generic */ }
+
+  return genericCampaignRefFallback(refs);
+}
+
+// Combines product + campaign reference parts for a single image-generation call.
+async function buildAllRefParts(apiKey, brandCtx, idea) {
+  const [prod, camp] = await Promise.all([
+    buildProductRefParts(apiKey, brandCtx, idea),
+    buildCampaignRefParts(apiKey, brandCtx, idea),
+  ]);
+  return {
+    instruction: [prod.instruction, camp.instruction].filter(Boolean).join(' '),
+    imageParts: [...prod.imageParts, ...camp.imageParts],
+  };
+}
+
+// ── Varied visual treatments so tiles don't all read as the same cinematic ad photo
+const TILE_IMAGE_STYLES = [
+  (brand, headline, tension) => `A single cinematic advertising photograph for a ${brand} campaign. Core idea: ${headline}. ${tension ? `Visual emotion: ${tension}.` : ''} Style: bold advertising photography, dark atmospheric lighting.`,
+  (brand, headline) => `A clean product-only studio shot related to ${brand} and the idea "${headline}". Style: minimal studio product photography, soft shadow, centered composition, no people.`,
+  (brand, headline, tension) => `A metaphorical, symbolic image representing the idea "${headline}"${tension ? ` and the feeling: ${tension}` : ''} for ${brand}. Style: surreal, conceptual, striking single-subject visual metaphor.`,
+  (brand, headline) => `A simple 3D-rendered icon or object representing the concept "${headline}" for ${brand}. Style: clean 3D render, soft studio lighting, single object on a plain background, isolated icon aesthetic.`,
+  (brand, headline, tension) => `A side-by-side before/after or split-frame composition visualizing "${headline}"${tension ? ` — contrasting ${tension}` : ''} for ${brand}. Style: diptych split composition, clear visual contrast between the two halves.`,
+];
+
+// ── Nano Banana 2 Lite (gemini-3.1-flash-lite-image) tile thumbnails — every tile, varied styles, limited concurrency
+// idPrefix lets the same pipeline drive both the main results grid ("tile-N")
+// and the returning-user empty-state feed ("feedtile-N") without ID collisions.
+// sessionId, when provided, persists each generated image onto its idea in
+// localStorage so it's created once and reused forever — never regenerated on
+// a later visit. indices restricts generation to specific idea positions (used
+// to skip ideas that already have a cached thumbDataUrl).
+async function generateTileImages(ideas, brandName, brandRgb, idPrefix = 'tile', sessionId = null, indices = null) {
+  const targets = indices || ideas.map((_, i) => i);
+  const CONCURRENCY = 4;
+  let cursor = 0;
+  async function worker() {
+    while (cursor < targets.length) {
+      const i = targets[cursor++];
+      await generateOneTileImage(ideas[i], i, brandName, brandRgb, idPrefix, sessionId);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, targets.length) }, worker));
+}
+
+async function generateOneTileImage(idea, i, brandName, brandRgb, idPrefix = 'tile', sessionId = null) {
+  const el = document.getElementById(`${idPrefix}-${i}`);
+  if (!el) return;
+  const googleKey = SCOUT_KEYS.google;
+  try {
+    const clean = s => (s || '').replace(/[\uD800-\uDFFF]/g, '');
+    const styleFn = TILE_IMAGE_STYLES[i % TILE_IMAGE_STYLES.length];
+    // Reference images are user-uploaded and already analyzed once on upload, so the
+    // only extra cost here is a small text-only Claude call to pick the bespoke
+    // instruction per idea — no web search, no image fetch.
+    const anthropicKeyForRef = document.getElementById('apiKey').value.trim();
+    const { instruction: productRefInstruction, imageParts } = await buildAllRefParts(anthropicKeyForRef, clean(brandName), idea);
+    const imgPrompt = [
+      styleFn(clean(brandName), clean(idea.headline), clean(idea.humanTension)),
+      productRefInstruction,
+      `IMPORTANT: No text, no words, no typography, no logos, no overlays. Pure image only.`
+    ].filter(Boolean).join(' ');
+    const input = [...imageParts, { type: 'text', text: imgPrompt }];
+    const res = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': googleKey },
+      body: JSON.stringify({
+        model: 'gemini-3.1-flash-lite-image',
+        input,
+        response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '4:5', image_size: '512' }
+      })
+    }, 60000);
+    if (!res.ok) throw new Error('tile image request failed');
+    const data = await res.json();
+    const outputStep = data?.steps?.find(s => s.type === 'model_output');
+    const part = outputStep?.content?.[0];
+    if (!part?.data) throw new Error('no image data');
+    const dataUrl = `data:${part.mime_type || 'image/jpeg'};base64,${part.data}`;
+    el.style.backgroundImage = `url(${dataUrl})`;
+    el.classList.remove('tile-loading');
+    idea.thumbDataUrl = dataUrl;
+    if (sessionId) persistTileImage(sessionId, i, dataUrl);
+  } catch (e) {
+    // Fall back to a solid brand-color tile if generation fails
+    const v = tileVariant(brandRgb, i);
+    el.classList.remove('tile-image', 'tile-loading');
+    el.classList.add('tile-color');
+    el.style.color = v.fg;
+    el.style.setProperty('--tile-bg', v.bg);
+    const eyebrow = el.querySelector('.tile-eyebrow');
+    const sub = el.querySelector('.tile-sub');
+    if (eyebrow) eyebrow.style.color = v.fgDim;
+    if (sub) sub.style.color = v.fgDim;
+  }
+}
+
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1572,90 +3130,135 @@ window.toggleContext = function() {
   icon.textContent = open ? '−' : '+';
 };
 
+// ── INTRO: Run Scouts button → take the user into Bazooka's Brand Briefs &
+// Documents page so they can add sources first. Does NOT auto-run a scan.
+window.introRunScout = function() {
+  enterBrandEditor(previewBrandId || EMPTY_STATE_BRAND_ID);
+  window.scrollTo({ top: 0, behavior: 'auto' });
+  const body = document.getElementById('contextBody');
+  const icon = document.getElementById('contextIcon');
+  if (body) body.style.display = '';
+  if (icon) icon.textContent = '−';
+};
+
+// ── Clicking the { Scout } wordmark always returns to the intro scroll,
+// regardless of which brand page is currently open.
+window.goToIntro = function() {
+  activeBrandId = null;
+  previewBrandId = null;
+  renderDropdown();
+  renderEditor();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+};
+
+// ── Sizzle video lightbox (play button on intro panel 1)
+window.openSizzleVideo = function() {
+  const overlay = document.getElementById('videoOverlay');
+  const vid = document.getElementById('sizzleVideoEl');
+  overlay.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+  vid.currentTime = 0;
+  vid.play().catch(() => {}); // autoplay can be blocked silently — controls are visible either way
+};
+window.closeSizzleVideo = function() {
+  const overlay = document.getElementById('videoOverlay');
+  const vid = document.getElementById('sizzleVideoEl');
+  vid.pause();
+  overlay.classList.remove('visible');
+  document.body.style.overflow = '';
+};
+document.getElementById('videoOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) window.closeSizzleVideo();
+});
+
+// ── INTRO PARALLAX ENGINE
+// Native scroll stays untouched (reliable on mobile); instead a lerped copy of
+// scrollY drives the headline transforms so the type glides with a slight,
+// fluid lag behind the panels — plus mouse-parallax on pointer:fine devices.
+// Everything is transform/opacity only (GPU-composited).
+(function initIntroParallax() {
+  const intro = document.getElementById('introScroll');
+  if (!intro) return;
+  const masthead = document.querySelector('.masthead');
+  const panels = Array.from(intro.querySelectorAll('.intro-panel'));
+  const finePointer = window.matchMedia('(pointer:fine)').matches;
+
+  function setMastH() { document.documentElement.style.setProperty('--mast-h', masthead.offsetHeight + 'px'); }
+  setMastH();
+  window.addEventListener('resize', setMastH);
+
+  let tmx = 0, tmy = 0, mx = 0, my = 0;               // mouse, target + lerped (-1..1)
+  let sy = window.scrollY;                             // lerped scrollY
+  if (finePointer) {
+    document.addEventListener('mousemove', e => {
+      tmx = (e.clientX / innerWidth - 0.5) * 2;
+      tmy = (e.clientY / innerHeight - 0.5) * 2;
+    });
+  }
+
+  const edgeGlow = document.getElementById('introEdgeGlow');
+  let glowOpacity = 0;
+
+  function tick() {
+    requestAnimationFrame(tick);
+    if (!intro.classList.contains('visible')) return;
+    sy += (window.scrollY - sy) * 0.1;
+    mx += (tmx - mx) * 0.06;
+    my += (tmy - my) * 0.06;
+    const mastH = masthead.offsetHeight;
+    const H = innerHeight - mastH;
+    const iTop = intro.offsetTop;
+    let maxFocus = 0;
+    panels.forEach((panel, i) => {
+      // enter: 0→1 as the panel slides up into its stuck position
+      // cover: 0→1 as the NEXT panel slides up over this one
+      const enter = Math.min(Math.max((sy - (iTop + i * H - mastH)) / H + 1, 0), 1);
+      const cover = Math.min(Math.max((sy - (iTop + (i + 1) * H - mastH)) / H, 0), 1);
+      // focus: peaks at 1 the moment a panel has fully arrived and hasn't
+      // started being covered yet — drives the edge-glow "lock in" pulse.
+      const focus = enter * (1 - cover);
+      maxFocus = Math.max(maxFocus, focus);
+      panel.querySelectorAll('[data-depth]').forEach(el => {
+        const d = parseFloat(el.dataset.depth) || 1;
+        const ty = (1 - enter) * H * 0.22 * d - cover * H * 0.18 * d;
+        const tx = mx * 26 * d;
+        const tyMouse = my * 16 * d;
+        el.style.transform = `translate3d(${tx.toFixed(2)}px, ${(ty + tyMouse).toFixed(2)}px, 0) scale(${(1 - cover * 0.12).toFixed(4)})`;
+        el.style.opacity = (enter * (1 - cover * 0.85)).toFixed(3);
+        // Lens-blur-to-sharp reveal: headline text sharpens in as its panel
+        // arrives, and softens slightly again as the next panel covers it.
+        if (el.classList.contains('intro-headline')) {
+          const blurPx = (1 - enter) * 16 + cover * 6;
+          el.style.filter = `blur(${blurPx.toFixed(2)}px)`;
+        }
+      });
+    });
+    if (edgeGlow) {
+      // Snappier ease-in than linear so the glow feels like it "locks in"
+      // right as a panel settles, rather than fading up gradually.
+      const eased = Math.pow(maxFocus, 3);
+      glowOpacity += (eased - glowOpacity) * 0.15;
+      edgeGlow.style.opacity = glowOpacity.toFixed(3);
+    }
+  }
+  tick();
+})();
+
 // ── INIT
+// Pre-populate API key fields from api-keys.js if present
+if (typeof SCOUT_KEYS !== 'undefined') {
+  if (SCOUT_KEYS.anthropic) {
+    document.getElementById('apiKey').value = SCOUT_KEYS.anthropic;
+    document.getElementById('apiKeyWrap').style.display = 'none';
+  }
+}
 renderDropdown();
 renderEditor();
 
-// ── SCOUT_KEYS auto-fill
-if (typeof SCOUT_KEYS !== 'undefined') {
-  if (SCOUT_KEYS.anthropic) {
-    const ak = document.getElementById('apiKey');
-    if (ak) ak.value = SCOUT_KEYS.anthropic;
-    const wrap = document.getElementById('apiKeyWrap');
-    if (wrap) wrap.style.display = 'none';
-  }
-}
-</script>
-
-<script>
-// ── SIGNAL WAVE BACKGROUND
-(function() {
-  const canvas = document.getElementById('waveCanvas');
-  const ctx = canvas.getContext('2d');
-
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  // Wave configs — each has independent speed, amplitude, frequency, phase offset, opacity
-  const waves = [
-    { speed: 0.00018, amp: 38,  freq: 0.0028, phase: 0,    opacity: 0.13, width: 1.2, yRatio: 0.38 },
-    { speed: 0.00012, amp: 55,  freq: 0.0018, phase: 1.6,  opacity: 0.07, width: 1.8, yRatio: 0.55 },
-    { speed: 0.00022, amp: 24,  freq: 0.0042, phase: 3.2,  opacity: 0.10, width: 0.9, yRatio: 0.68 },
-    { speed: 0.00009, amp: 70,  freq: 0.0012, phase: 0.8,  opacity: 0.05, width: 2.2, yRatio: 0.25 },
-    { speed: 0.00028, amp: 18,  freq: 0.0058, phase: 4.5,  opacity: 0.08, width: 0.7, yRatio: 0.80 },
-  ];
-
-  // Pulse envelope — global breathe effect
-  let pulseT = 0;
-
-  function getSignalColor() {
-    const s = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#06e3fc';
-    // Parse hex to r,g,b
-    const m = s.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-    if (m) return `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}`;
-    return '6,227,252';
-  }
-
-  let lastColor = getSignalColor();
-  let colorCheckT = 0;
-
-  function draw(ts) {
-    requestAnimationFrame(draw);
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    // Refresh signal color every ~60 frames (brand switch)
-    colorCheckT++;
-    if (colorCheckT > 60) { lastColor = getSignalColor(); colorCheckT = 0; }
-
-    // Slow global pulse (breathe)
-    pulseT += 0.0008;
-    const breathe = 0.7 + 0.3 * Math.sin(pulseT);
-
-    for (const w of waves) {
-      const baseY = H * w.yRatio;
-      const phaseShift = ts * w.speed;
-      const amp = w.amp * breathe;
-
-      ctx.beginPath();
-      ctx.moveTo(0, baseY + Math.sin(w.phase + phaseShift) * amp);
-
-      for (let x = 1; x <= W; x += 3) {
-        const y = baseY + Math.sin(w.freq * x + w.phase + phaseShift) * amp;
-        ctx.lineTo(x, y);
-      }
-
-      ctx.strokeStyle = `rgba(${lastColor},${w.opacity * breathe})`;
-      ctx.lineWidth = w.width;
-      ctx.stroke();
-    }
-  }
-
-  requestAnimationFrame(draw);
+// Restore design-mode toggle state so it survives reloads while we iterate on UI.
+(function initDesignModeToggle() {
+  const el = document.getElementById('designModeToggle');
+  if (el) el.checked = isDesignMode();
 })();
 </script>
 </body>
