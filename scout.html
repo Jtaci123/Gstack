@@ -2471,10 +2471,13 @@ window.open1Pager = async function(i) {
     position:absolute;
     left:6%;bottom:4%;
     z-index:3;
-    display:flex;align-items:center;
+    display:flex;align-items:center;gap:12px;
   }
   .footer-tl-logo{height:clamp(9px,1.1vw,14px);width:auto;display:block;opacity:.55;}
   .footer-tl-logo path,.footer-tl-logo rect{fill:#666;}
+  .footer-divider{width:1px;height:10px;background:#333;flex-shrink:0;}
+  .footer-scout{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);letter-spacing:.18em;text-transform:uppercase;color:#555;white-space:nowrap;}
+  .footer-year{font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#555;white-space:nowrap;}
 
   /* ── RIGHT PANEL — full-bleed image only ── */
   .right{
@@ -2559,6 +2562,10 @@ window.open1Pager = async function(i) {
       <path d="M665.5,20c3.2,0,5.5,3,4.7,6l-40.1,166.7h-.5c0-.1,0,133.2,0,133.2,0,3.1-2.5,5.6-5.6,5.6h-40.1c-3.1,0-5.5-2.5-5.5-5.5v-137.4l-39.3-163.3c-.7-2.7,1.4-5.3,4.2-5.3h38.8c2.3,0,4.3,1.6,4.8,3.9l7.1,36.1,9.1,46.3c.4,1.9,3.1,1.9,3.4,0l9.1-46.3,6.9-34.9c.6-3,3.2-5.1,6.2-5.1h36.9Z"/>
       <path d="M540.3,184.8v96.7c0,28.9-23.4,52.3-52.3,52.3h-21.1c-28.9,0-52.3-23.4-52.3-52.3V67.8c0-28.9,23.4-52.3,52.3-52.3h21.1c28.9,0,52.3,23.4,52.3,52.3v89.8h-42.7c-5.2,0-9.4-4.2-9.4-9.4v-72.5c0-5.7-4.6-10.3-10.3-10.3h-.9c-5.7,0-10.3,4.6-10.3,10.3v197.9c0,5.7,4.6,10.3,10.3,10.3h.9c5.7,0,10.3-4.6,10.3-10.3v-81.1c0-4.2,3.4-7.6,7.6-7.6h44.5Z"/>
     </svg>
+    <span class="footer-divider"></span>
+    <span class="footer-scout">Concept Rigor Engine</span>
+    <span class="footer-divider"></span>
+    <span class="footer-year">${year}</span>
   </div>
 
   <!-- RIGHT: Full-bleed AI image -->
