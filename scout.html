@@ -2371,6 +2371,11 @@ window.open1Pager = async function(i) {
     heroImg = `https://images.unsplash.com/1600x900/?${imgKeywords}`;
   }
 
+  // Track the idea/brand currently shown so a later "regenerate image" click
+  // (routed via postMessage from inside the iframe) knows what to rebuild.
+  _pagerRegenIdea = idea;
+  _pagerRegenBrand = brandName;
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2484,12 +2489,14 @@ window.open1Pager = async function(i) {
     position:relative;
     overflow:hidden;
     min-height:0;
+    cursor:pointer;
   }
   .hero-img{
     position:absolute;inset:0;
     width:100%;height:100%;
     object-fit:cover;
     display:block;
+    transition:filter .2s ease, opacity .2s ease;
   }
   /* Subtle gradient fade on the left edge so brief text doesn't clash */
   .right::after{
@@ -2509,6 +2516,67 @@ window.open1Pager = async function(i) {
     padding:18px 5% 4%;
     line-height:1.7;
     z-index:2;
+  }
+
+  /* Hover hint — invites a click to regenerate the hero image */
+  .regen-hint{
+    position:absolute; inset:0; z-index:3;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(8,8,13,0.35);
+    opacity:0; pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .right:hover .regen-hint{ opacity:1; }
+  .regen-hint-label{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(9px,1vw,12px);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#fff;
+    padding:10px 20px;
+    border:1px solid rgba(255,255,255,.4);
+    border-radius:20px;
+    background:rgba(0,0,0,.4);
+    backdrop-filter:blur(6px);
+  }
+  .regen-loading .regen-hint{ opacity:1; pointer-events:none; background:rgba(8,8,13,0.55); }
+  .regen-loading .hero-img{ filter:blur(6px); opacity:.5; }
+
+  /* Regenerate-image prompt modal (self-contained inside this slide doc) */
+  .regen-overlay{
+    display:none; position:fixed; inset:0; z-index:20;
+    background:rgba(0,0,0,0.75);
+    align-items:center; justify-content:center;
+  }
+  .regen-overlay.visible{ display:flex; }
+  .regen-modal{
+    background:#14141c; border:1px solid #2a2a35; border-radius:16px;
+    padding:28px; width:min(460px, calc(100vw - 40px));
+    display:flex; flex-direction:column; gap:16px;
+    box-shadow:0 24px 60px rgba(0,0,0,.6);
+    font-family:'Space Grotesk',sans-serif;
+  }
+  .regen-modal-eyebrow{
+    font-family:'Space Mono',monospace; font-size:9px; letter-spacing:.2em;
+    text-transform:uppercase; color:${ac};
+  }
+  .regen-modal-title{ font-size:16px; font-weight:700; color:#f5f3ee; }
+  .regen-modal textarea{
+    width:100%; min-height:70px; resize:none;
+    background:#08080d; border:1px solid #2a2a35; border-radius:10px;
+    padding:12px 14px; font-family:'Space Grotesk',sans-serif; font-size:13px;
+    color:#e8e8f0; outline:none;
+  }
+  .regen-modal textarea:focus{ border-color:${ac}; }
+  .regen-modal-actions{ display:flex; justify-content:flex-end; gap:10px; }
+  .regen-modal-cancel{
+    font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:#666; background:none; border:none; cursor:pointer;
+  }
+  .regen-modal-go{
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.12em;
+    text-transform:uppercase; padding:10px 24px; background:${ac}; color:#fff;
+    border:none; border-radius:10px; cursor:pointer; font-weight:700;
   }
 
   @media print{
@@ -2569,16 +2637,114 @@ window.open1Pager = async function(i) {
   </div>
 
   <!-- RIGHT: Full-bleed AI image -->
-  <div class="right">
-    <img class="hero-img" src="${heroImg}" alt="" onerror="this.style.opacity='0'" />
+  <div class="right" id="regenTrigger">
+    <img class="hero-img" id="heroImgEl" src="${heroImg}" alt="" onerror="this.style.opacity='0'" />
+    <div class="regen-hint"><span class="regen-hint-label">Click to regenerate image</span></div>
     ${idea.sourceSignals ? `<div class="signals-strip">Cultural signals · ${esc(idea.sourceSignals)}</div>` : ''}
   </div>
 
 </div>
+
+<!-- Regenerate-image prompt modal -->
+<div class="regen-overlay" id="regenOverlay">
+  <div class="regen-modal">
+    <div class="regen-modal-eyebrow">Regenerate Image</div>
+    <div class="regen-modal-title">New visual direction</div>
+    <textarea id="regenInput" placeholder="e.g. neon night market, close-up product shot, no people…"></textarea>
+    <div class="regen-modal-actions">
+      <button class="regen-modal-cancel" onclick="closeRegenModal()">Cancel</button>
+      <button class="regen-modal-go" onclick="submitRegen()">Generate →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var trigger = document.getElementById('regenTrigger');
+  var overlay = document.getElementById('regenOverlay');
+  var input = document.getElementById('regenInput');
+  function openModal(){ overlay.classList.add('visible'); input.value=''; input.focus(); }
+  window.closeRegenModal = function(){ overlay.classList.remove('visible'); };
+  trigger.addEventListener('click', openModal);
+  window.submitRegen = function(){
+    var val = input.value.trim();
+    window.closeRegenModal();
+    trigger.classList.add('regen-loading');
+    parent.postMessage({ type:'scout-regen-image', prompt: val }, '*');
+  };
+  window.addEventListener('message', function(e){
+    var d = e.data || {};
+    if (d.type === 'scout-regen-image-result') {
+      trigger.classList.remove('regen-loading');
+      if (d.src) document.getElementById('heroImgEl').src = d.src;
+    } else if (d.type === 'scout-regen-image-error') {
+      trigger.classList.remove('regen-loading');
+      alert('Image regeneration failed: ' + (d.message || 'unknown error'));
+    }
+  });
+})();
+<\/script>
 </body>
 </html>`;
   frame.srcdoc = html;
 };
+
+// ── Handle "regenerate image" requests posted from inside the 1-pager iframe.
+// Registered once at load; uses the idea/brand tracked by the most recent
+// open1Pager call, since the iframe itself has no access to SCOUT_KEYS or
+// the helper functions needed to call Gemini.
+let _pagerRegenIdea = null, _pagerRegenBrand = '';
+window.addEventListener('message', async (e) => {
+  const d = e.data || {};
+  if (d.type !== 'scout-regen-image') return;
+  const frame = document.getElementById('pagerFrame');
+  const googleKey = (typeof SCOUT_KEYS !== 'undefined') ? SCOUT_KEYS.google : '';
+  if (!googleKey || !_pagerRegenIdea) {
+    frame?.contentWindow?.postMessage({ type:'scout-regen-image-error', message: 'No Google API key configured.' }, '*');
+    return;
+  }
+  try {
+    const clean = s => (s || '').replace(/[\uD800-\uDFFF]/g, '');
+    const brandCtx = clean(_pagerRegenBrand);
+    const coreIdea = clean(_pagerRegenIdea.headline);
+    const coreTension = clean(_pagerRegenIdea.humanTension);
+    const extraGuidance = clean(d.prompt);
+    const anthropicKeyForRef = document.getElementById('apiKey').value.trim();
+    const { instruction: productRefInstruction, imageParts } = await buildAllRefParts(anthropicKeyForRef, brandCtx, _pagerRegenIdea);
+    const imgPrompt = [
+      `A single cinematic advertising photograph for a ${brandCtx} campaign.`,
+      `Core idea: ${coreIdea}.`,
+      coreTension ? `Visual emotion: ${coreTension}.` : '',
+      extraGuidance ? `Visual direction: ${extraGuidance}.` : '',
+      productRefInstruction,
+      `Style: bold, high-production advertising photography. Dark atmospheric lighting. 16:9 widescreen composition.`,
+      `IMPORTANT: No text, no words, no typography, no logos, no overlays. Pure image only.`
+    ].filter(Boolean).join(' ');
+    const heroInput = [...imageParts, { type: 'text', text: imgPrompt }];
+    const imgRes = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/interactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': googleKey },
+      body: JSON.stringify({
+        model: 'gemini-3.1-flash-image',
+        input: heroInput,
+        response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '16:9', image_size: '1K' }
+      })
+    }, 90000);
+    if (imgRes.ok) {
+      const imgData = await imgRes.json();
+      const outputStep = imgData?.steps?.find(s => s.type === 'model_output');
+      const part = outputStep?.content?.[0];
+      if (part?.data) {
+        const src = `data:${part.mime_type || 'image/jpeg'};base64,${part.data}`;
+        frame?.contentWindow?.postMessage({ type:'scout-regen-image-result', src }, '*');
+        return;
+      }
+    }
+    frame?.contentWindow?.postMessage({ type:'scout-regen-image-error', message:'Image generation failed.' }, '*');
+  } catch(err) {
+    frame?.contentWindow?.postMessage({ type:'scout-regen-image-error', message: err.message || 'Unknown error' }, '*');
+  }
+});
 
 window.closePager = function() {
   document.getElementById('pagerOverlay').classList.remove('visible');
