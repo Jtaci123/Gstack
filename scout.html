@@ -66,14 +66,14 @@
   .masthead-logo { display: flex; align-items: center; padding-right: 26px; border-right: 1px solid var(--rule); }
   .tl-logo { height: 19.5px; width: auto; display: block; }
   .tl-logo path, .tl-logo rect { fill: #fff; }
-  .masthead-left { display: flex; align-items: center; gap: 14px; padding: 0 28px 0 26px; border-right: 1px solid var(--rule); cursor: pointer; transition: opacity .15s; }
+  .masthead-left { display: flex; align-items: center; gap: 14px; padding: 0 28px 0 26px; border-right: 1px solid var(--rule); cursor: pointer; transition: opacity .15s; flex-shrink: 0; }
   .masthead-left:hover { opacity: .8; }
   .mast-social { display: flex; align-items: center; gap: 14px; border-left: 1px solid var(--rule); padding-left: 20px; }
   .mast-social a { color: var(--muted); display: flex; align-items: center; transition: color .15s; }
   .mast-social a:hover { color: var(--ink-strong); }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--signal); flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(6,227,252,.55)} 50%{opacity:.85;box-shadow:0 0 0 8px rgba(6,227,252,0)} }
-  .wordmark { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-strong); }
+  .wordmark { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-strong); white-space: nowrap; }
   .masthead-center { display: flex; align-items: center; gap: 16px; padding: 0 28px; }
   .brand-select-wrap { display: flex; align-items: center; gap: 10px; }
   .brand-select-label { font-family: var(--mono); font-size: 9px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
