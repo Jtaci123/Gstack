@@ -2378,6 +2378,7 @@ window.open1Pager = async function(i) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${idea.headline}</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=highrise@400,700&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{width:100%;height:100%;overflow:hidden;background:#08080d;font-family:'Space Grotesk',sans-serif;}
@@ -2419,54 +2420,39 @@ window.open1Pager = async function(i) {
   }
 
   .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
-  .brand-pill{
-    display:flex;align-items:center;gap:8px;
-    font-family:'Space Mono',monospace;
-    font-size:clamp(7px,1vw,11px);
-    letter-spacing:.2em;
-    text-transform:uppercase;
-    color:#555;
+  .brand-mark{display:flex;align-items:center;gap:10px;}
+  .brand-mark-dot{
+    width:11px;height:11px;border-radius:50%;
+    background:${ac};
+    box-shadow:0 0 0 3px ${acDim};
+    flex-shrink:0;
   }
-  .brand-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:${ac};flex-shrink:0;}
-
-  .score-badge{
+  .brand-mark-name{
     font-family:'Space Mono',monospace;
-    font-size:clamp(8px,1.1vw,13px);
-    letter-spacing:.12em;
-    color:${ac};
-    border:1px solid ${ac};
-    padding:3px 10px;
-    border-radius:2px;
+    font-size:clamp(9px,1.1vw,13px);
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#d8d8e0;
   }
 
   .headline-block{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:6% 0 0;}
-  .eyebrow{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(7px,.9vw,10px);
-    letter-spacing:.25em;
-    text-transform:uppercase;
-    color:${ac};
-    margin-bottom:3%;
-  }
   .headline{
-    font-size:clamp(18px,3.6vw,52px);
-    font-weight:900;
-    line-height:1.0;
-    letter-spacing:-.03em;
+    font-family:'Highrise',sans-serif;
+    font-size:clamp(20px,3.8vw,54px);
+    font-weight:700;
+    line-height:1.02;
+    letter-spacing:.01em;
     color:#f5f3ee;
-    margin-bottom:5%;
+    margin-bottom:4%;
   }
-  .chips{display:flex;gap:8px;flex-wrap:wrap;}
-  .chip{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(6px,.8vw,9px);
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    padding:3px 9px;
-    border:1px solid #2a2a35;
-    color:#555;
+  .teaser{
+    font-size:clamp(11px,1.3vw,16px);
+    color:#c9cdd6;
+    font-style:italic;
+    font-weight:500;
+    line-height:1.5;
   }
-  .chip-accent{border-color:${ac};color:${ac};}
 
   .brief-block{border-top:1px solid #1a1a24;padding-top:4%;}
   .brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:4%;}
@@ -2533,22 +2519,18 @@ window.open1Pager = async function(i) {
   <!-- LEFT: Brief -->
   <div class="left">
     <div class="top-bar">
-      <div class="brand-pill">${brandName}</div>
-      <div class="score-badge">${idea.score} / 10</div>
-    </div>
-
-    <div class="headline-block">
-      <div class="eyebrow">${idea.rigorLabel || 'Campaign Concept'}</div>
-      <div class="headline">${idea.headline}</div>
-      ${idea.handle ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(7px,.85vw,10px);color:${ac};font-style:italic;margin-bottom:4%;">"${idea.handle}"</div>` : ''}
-      <div class="chips">
-        <span class="chip chip-accent">${idea.platform}</span>
-        <span class="chip">${idea.format}</span>
+      <div class="brand-mark">
+        <span class="brand-mark-dot"></span>
+        <span class="brand-mark-name">${brandName}</span>
       </div>
     </div>
 
+    <div class="headline-block">
+      <div class="headline">${idea.headline}</div>
+      ${idea.humanTension ? `<div class="teaser">${idea.humanTension}</div>` : ''}
+    </div>
+
     <div class="brief-block">
-      ${idea.humanTension ? `<div style="font-size:clamp(9px,1.05vw,12px);color:#e5e7eb;font-style:italic;font-weight:600;margin-bottom:4%;padding-bottom:3%;border-bottom:1px solid #1a1a24;">${idea.humanTension}</div>` : ''}
       <div class="brief-grid">
         <div>
           <div class="brief-field-label">Why Now</div>
@@ -2559,7 +2541,6 @@ window.open1Pager = async function(i) {
           <div class="brief-field-text">${idea.execution}</div>
         </div>
       </div>
-      ${idea.rigorNote ? `<div style="font-family:'Space Mono',monospace;font-size:clamp(6px,.7vw,8px);color:#4b5563;margin-top:3%;padding-top:3%;border-top:1px solid #1a1a24;letter-spacing:.04em;">RIGOR NOTE · ${idea.rigorNote}</div>` : ''}
       <div class="footer-bar">
         <span class="footer-scout">🔭 Scout · Concept Rigor Engine</span>
         <span class="footer-year">${year}</span>
